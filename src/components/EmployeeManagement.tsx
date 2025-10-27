@@ -2,11 +2,14 @@ import { useState, useEffect } from 'react';
 import { Employee } from '../types/employee';
 import { UserAccount } from '../types/user';
 import { getData, saveData, DB_KEYS, loadDatabaseFromFile, exportToJSON } from '../services/database';
+import Modal from './Modal';
+import { useModal } from '../hooks/useModal';
 
 const EmployeeManagement = () => {
     const [employees, setEmployees] = useState<Employee[]>([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
+    const modal = useModal();
     const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
     const [formData, setFormData] = useState<Partial<Employee>>({
         fullName: '',
@@ -67,7 +70,7 @@ const EmployeeManagement = () => {
         e.preventDefault();
 
         if (!formData.fullName || !formData.phone) {
-            alert('Vui lòng điền đầy đủ thông tin bắt buộc (Họ tên và Số điện thoại)');
+            modal.showError('Vui lòng điền đầy đủ thông tin bắt buộc (Họ tên và Số điện thoại)');
             return;
         }
 
@@ -87,6 +90,7 @@ const EmployeeManagement = () => {
                         : user
                 );
                 await saveData(DB_KEYS.USERS, updatedUsers);
+                modal.showSuccess('Cập nhật nhân viên thành công!');
             } else {
                 // Load users để kiểm tra và tạo tài khoản
                 const users = await getData<UserAccount[]>(DB_KEYS.USERS, []);
@@ -110,7 +114,7 @@ const EmployeeManagement = () => {
                     // Kiểm tra username đã tồn tại chưa
                     const usernameExists = users.some(u => u.username.toLowerCase() === username!.toLowerCase());
                     if (usernameExists) {
-                        alert('Tên đăng nhập đã tồn tại. Vui lòng chọn tên khác.');
+                        modal.showError('Tên đăng nhập đã tồn tại. Vui lòng chọn tên khác.');
                         return;
                     }
                 }
@@ -147,22 +151,22 @@ const EmployeeManagement = () => {
                 setEmployees([...employees, newEmployee]);
 
                 // Hiển thị thông tin tài khoản đã tạo
-                alert(`Đã tạo tài khoản đăng nhập:\nTài khoản: ${username}\nMật khẩu: ${password}\n\nVui lòng ghi nhớ thông tin này để đăng nhập!`);
+                modal.showSuccess(`Đã tạo tài khoản đăng nhập:\n\nTài khoản: ${username}\nMật khẩu: ${password}\n\nVui lòng ghi nhớ thông tin này để đăng nhập!`);
             }
 
             handleCloseModal();
         } catch (error) {
             console.error('Error saving employee:', error);
-            alert('Có lỗi xảy ra khi lưu thông tin nhân viên');
+            modal.showError('Có lỗi xảy ra khi lưu thông tin nhân viên');
         }
     };
 
     const handleDelete = async (id: number) => {
-        if (confirm('Bạn có chắc chắn muốn xóa nhân viên này? Tài khoản đăng nhập cũng sẽ bị xóa.')) {
+        modal.showConfirm('Bạn có chắc chắn muốn xóa nhân viên này? Tài khoản đăng nhập cũng sẽ bị xóa.', async () => {
             const employee = employees.find(emp => emp.id === id);
 
             if (!employee) {
-                alert('Không tìm thấy nhân viên cần xóa');
+                modal.showError('Không tìm thấy nhân viên cần xóa');
                 return;
             }
 
@@ -174,14 +178,15 @@ const EmployeeManagement = () => {
                     await saveData(DB_KEYS.USERS, updatedUsers);
                 } catch (error) {
                     console.error('Error deleting user account:', error);
-                    alert('Có lỗi khi xóa tài khoản đăng nhập. Quá trình xóa nhân viên đã bị hủy.');
+                    modal.showError('Có lỗi khi xóa tài khoản đăng nhập. Quá trình xóa nhân viên đã bị hủy.');
                     return;
                 }
             }
 
             // Sau đó mới xóa nhân viên (useEffect sẽ tự động lưu vào database)
             setEmployees(employees.filter(emp => emp.id !== id));
-        }
+            modal.showSuccess('Xóa nhân viên thành công!');
+        });
     };
 
     const activeEmployees = employees.filter(e => e.status === 'active').length;
@@ -205,13 +210,13 @@ const EmployeeManagement = () => {
             setShowJsonData(true);
         } catch (error) {
             console.error('Error loading JSON data:', error);
-            alert('Lỗi khi tải dữ liệu JSON');
+            modal.showError('Lỗi khi tải dữ liệu JSON');
         }
     };
 
     const handleCopyJson = () => {
         navigator.clipboard.writeText(jsonData);
-        alert('Đã copy dữ liệu JSON vào clipboard! Bạn có thể paste vào file database.json');
+        modal.showSuccess('Đã copy dữ liệu JSON vào clipboard! Bạn có thể paste vào file database.json');
     };
 
     return (
@@ -230,9 +235,9 @@ const EmployeeManagement = () => {
                         onClick={async () => {
                             try {
                                 await exportToJSON();
-                                alert('Đã export dữ liệu ra file database.json');
+                                modal.showSuccess('Đã export dữ liệu ra file database.json');
                             } catch (error) {
-                                alert('Lỗi khi export dữ liệu');
+                                modal.showError('Lỗi khi export dữ liệu');
                             }
                         }}
                         className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-medium"
@@ -480,6 +485,16 @@ const EmployeeManagement = () => {
                     </div>
                 </div>
             )}
+
+            {/* Modal */}
+            <Modal
+                isOpen={modal.isOpen}
+                onClose={modal.close}
+                handleConfirm={modal.handleConfirm}
+                message={modal.message}
+                title={modal.title}
+                type={modal.type}
+            />
         </div>
     );
 };

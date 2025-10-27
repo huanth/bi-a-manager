@@ -3,12 +3,15 @@ import { MenuItem } from '../types/order';
 import { getData, saveData, DB_KEYS } from '../services/database';
 import { initialMenu } from '../data/menuData';
 import LoadingSpinner from './LoadingSpinner';
+import Modal from './Modal';
+import { useModal } from '../hooks/useModal';
 
 const MenuManagement = () => {
     const [menu, setMenu] = useState<MenuItem[]>([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
     const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
+    const modal = useModal();
     const [formData, setFormData] = useState<Partial<MenuItem>>({
         name: '',
         category: 'food',
@@ -70,7 +73,7 @@ const MenuManagement = () => {
         e.preventDefault();
 
         if (!formData.name || !formData.price) {
-            alert('Vui lòng điền đầy đủ thông tin');
+            modal.showError('Vui lòng điền đầy đủ thông tin');
             return;
         }
 
@@ -81,6 +84,7 @@ const MenuManagement = () => {
                     ? { ...formData, id: editingItem.id } as MenuItem
                     : item
             ));
+            modal.showSuccess('Cập nhật món thành công!');
         } else {
             // Add new item
             const newId = menu.length > 0 ? Math.max(...menu.map(m => m.id)) + 1 : 1;
@@ -93,15 +97,17 @@ const MenuManagement = () => {
                 isActive: formData.isActive !== false,
             };
             setMenu([...menu, newItem]);
+            modal.showSuccess('Thêm món mới thành công!');
         }
 
         handleCloseModal();
     };
 
     const handleDelete = (id: number) => {
-        if (confirm('Bạn có chắc chắn muốn xóa món này?')) {
+        modal.showConfirm('Bạn có chắc chắn muốn xóa món này?', () => {
             setMenu(menu.filter(item => item.id !== id));
-        }
+            modal.showSuccess('Xóa món thành công!');
+        });
     };
 
     const handleToggleActive = (id: number) => {
@@ -353,6 +359,16 @@ const MenuManagement = () => {
                     </div>
                 </div>
             )}
+
+            {/* Modal */}
+            <Modal
+                isOpen={modal.isOpen}
+                onClose={modal.close}
+                handleConfirm={modal.handleConfirm}
+                message={modal.message}
+                title={modal.title}
+                type={modal.type}
+            />
         </div>
     );
 };

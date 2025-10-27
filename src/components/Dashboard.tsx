@@ -29,10 +29,8 @@ const Dashboard = () => {
 
             setTotalRevenue(transactionsTotal + ordersTotal);
 
-            // Đếm số đơn hàng chưa hoàn thành (pending, preparing, ready)
-            const pendingCount = orders.filter(o =>
-                o.status !== 'completed' && o.status !== 'cancelled'
-            ).length;
+            // Đếm số đơn hàng chưa hoàn thành (pending)
+            const pendingCount = orders.filter(o => o.status === 'pending').length;
             setPendingOrdersCount(pendingCount);
         } catch (error) {
             console.error('Error loading data:', error);

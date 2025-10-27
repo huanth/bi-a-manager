@@ -4,6 +4,8 @@ import { BilliardTable } from '../types/table';
 import { getData, saveData, DB_KEYS } from '../services/database';
 import { initialMenu } from '../data/menuData';
 import { useAuth } from '../contexts/AuthContext';
+import Modal from './Modal';
+import { useModal } from '../hooks/useModal';
 
 interface OrderModalProps {
     table: BilliardTable;
@@ -17,6 +19,7 @@ const OrderModal = ({ table, onClose, onOrderComplete }: OrderModalProps) => {
     const [selectedItems, setSelectedItems] = useState<Map<number, { quantity: number; note?: string }>>(new Map());
     const [activeCategory, setActiveCategory] = useState<'food' | 'drink'>('food');
     const [loading, setLoading] = useState(true);
+    const modal = useModal();
 
     useEffect(() => {
         const loadMenu = async () => {
@@ -64,7 +67,7 @@ const OrderModal = ({ table, onClose, onOrderComplete }: OrderModalProps) => {
 
     const handleSubmitOrder = async () => {
         if (selectedItems.size === 0) {
-            alert('Vui lòng chọn ít nhất một món');
+            modal.showError('Vui lòng chọn ít nhất một món');
             return;
         }
 
@@ -106,12 +109,14 @@ const OrderModal = ({ table, onClose, onOrderComplete }: OrderModalProps) => {
             // Thông báo Dashboard cập nhật
             window.dispatchEvent(new CustomEvent('ordersUpdated'));
 
-            alert('Đặt món thành công!');
+            modal.showSuccess('Đặt món thành công!');
             onOrderComplete();
-            onClose();
+            setTimeout(() => {
+                onClose();
+            }, 1000);
         } catch (error) {
             console.error('Error creating order:', error);
-            alert('Có lỗi xảy ra khi đặt món');
+            modal.showError('Có lỗi xảy ra khi đặt món');
         }
     };
 
@@ -256,6 +261,16 @@ const OrderModal = ({ table, onClose, onOrderComplete }: OrderModalProps) => {
                     </div>
                 </div>
             </div>
+
+            {/* Modal */}
+            <Modal
+                isOpen={modal.isOpen}
+                onClose={modal.close}
+                handleConfirm={modal.handleConfirm}
+                message={modal.message}
+                title={modal.title}
+                type={modal.type}
+            />
         </div>
     );
 };

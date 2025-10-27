@@ -4,12 +4,15 @@ import { RevenueTransaction } from '../types/revenue';
 import { getData, saveData, DB_KEYS } from '../services/database';
 import { useAuth } from '../contexts/AuthContext';
 import LoadingSpinner from './LoadingSpinner';
+import Modal from './Modal';
+import { useModal } from '../hooks/useModal';
 
 const OrderManagement = () => {
     const { user } = useAuth();
     const [orders, setOrders] = useState<Order[]>([]);
     const [filterStatus, setFilterStatus] = useState<OrderStatus | 'all'>('all');
     const [loading, setLoading] = useState(true);
+    const modal = useModal();
 
     useEffect(() => {
         const loadOrders = async () => {
@@ -42,33 +45,12 @@ const OrderManagement = () => {
                     textColor: 'text-yellow-800',
                     borderColor: 'border-yellow-300',
                 };
-            case 'preparing':
-                return {
-                    label: 'Đang chuẩn bị',
-                    bgColor: 'bg-blue-100',
-                    textColor: 'text-blue-800',
-                    borderColor: 'border-blue-300',
-                };
-            case 'ready':
-                return {
-                    label: 'Sẵn sàng',
-                    bgColor: 'bg-green-100',
-                    textColor: 'text-green-800',
-                    borderColor: 'border-green-300',
-                };
             case 'completed':
                 return {
                     label: 'Hoàn thành',
                     bgColor: 'bg-gray-100',
                     textColor: 'text-gray-800',
                     borderColor: 'border-gray-300',
-                };
-            case 'cancelled':
-                return {
-                    label: 'Đã hủy',
-                    bgColor: 'bg-red-100',
-                    textColor: 'text-red-800',
-                    borderColor: 'border-red-300',
                 };
         }
     };
@@ -92,6 +74,11 @@ const OrderManagement = () => {
 
             // Thông báo Dashboard cập nhật
             window.dispatchEvent(new CustomEvent('ordersUpdated'));
+
+            // Toast notification
+            if (newStatus === 'completed') {
+                modal.showSuccess('Đã đánh dấu đơn hàng hoàn thành!');
+            }
 
             // Nếu đơn hàng được đánh dấu là completed, lưu vào revenue
             if (newStatus === 'completed' && order.status !== 'completed') {
@@ -127,27 +114,15 @@ const OrderManagement = () => {
             }
         } catch (error) {
             console.error('Error updating order status:', error);
-            alert('Có lỗi xảy ra khi cập nhật trạng thái đơn hàng');
-        }
-    };
-
-    const handleCancelOrder = async (orderId: number) => {
-        if (confirm('Bạn có chắc chắn muốn hủy đơn hàng này?')) {
-            await handleUpdateStatus(orderId, 'cancelled');
+            modal.showError('Có lỗi xảy ra khi cập nhật trạng thái đơn hàng');
         }
     };
 
     const stats = {
         total: orders.length,
         pending: orders.filter(o => o.status === 'pending').length,
-        preparing: orders.filter(o => o.status === 'preparing').length,
-        ready: orders.filter(o => o.status === 'ready').length,
         completed: orders.filter(o => o.status === 'completed').length,
     };
-
-    const totalRevenue = orders
-        .filter(o => o.status === 'completed')
-        .reduce((sum, order) => sum + order.totalAmount, 0);
 
     const formatDate = (dateString: string) => {
         const date = new Date(dateString);
@@ -175,7 +150,7 @@ const OrderManagement = () => {
             </div>
 
             {/* Stats Cards */}
-            <div className="grid grid-cols-5 gap-4 mb-6">
+            <div className="grid grid-cols-2 gap-4 mb-6">
                 <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
                     <p className="text-sm text-gray-600 mb-1">Tổng đơn</p>
                     <p className="text-2xl font-bold text-gray-800">{stats.total}</p>
@@ -183,18 +158,6 @@ const OrderManagement = () => {
                 <div className="bg-yellow-50 rounded-lg p-4 border border-yellow-200">
                     <p className="text-sm text-yellow-700 mb-1">Chờ xử lý</p>
                     <p className="text-2xl font-bold text-yellow-800">{stats.pending}</p>
-                </div>
-                <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
-                    <p className="text-sm text-blue-700 mb-1">Đang chuẩn bị</p>
-                    <p className="text-2xl font-bold text-blue-800">{stats.preparing}</p>
-                </div>
-                <div className="bg-green-50 rounded-lg p-4 border border-green-200">
-                    <p className="text-sm text-green-700 mb-1">Sẵn sàng</p>
-                    <p className="text-2xl font-bold text-green-800">{stats.ready}</p>
-                </div>
-                <div className="bg-purple-50 rounded-lg p-4 border border-purple-200">
-                    <p className="text-sm text-purple-700 mb-1">Doanh thu</p>
-                    <p className="text-2xl font-bold text-purple-800">{totalRevenue.toLocaleString('vi-VN')}đ</p>
                 </div>
             </div>
 
@@ -217,24 +180,6 @@ const OrderManagement = () => {
                         }`}
                 >
                     Chờ xử lý ({stats.pending})
-                </button>
-                <button
-                    onClick={() => setFilterStatus('preparing')}
-                    className={`px-4 py-2 rounded-lg font-medium transition ${filterStatus === 'preparing'
-                        ? 'bg-blue-600 text-white'
-                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                        }`}
-                >
-                    Đang chuẩn bị ({stats.preparing})
-                </button>
-                <button
-                    onClick={() => setFilterStatus('ready')}
-                    className={`px-4 py-2 rounded-lg font-medium transition ${filterStatus === 'ready'
-                        ? 'bg-green-600 text-white'
-                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                        }`}
-                >
-                    Sẵn sàng ({stats.ready})
                 </button>
                 <button
                     onClick={() => setFilterStatus('completed')}
@@ -305,40 +250,14 @@ const OrderManagement = () => {
                                 </div>
 
                                 {/* Action buttons */}
-                                {order.status !== 'completed' && order.status !== 'cancelled' && (
+                                {order.status === 'pending' && (
                                     <div className="flex gap-2">
-                                        {order.status === 'pending' && (
-                                            <>
-                                                <button
-                                                    onClick={() => handleUpdateStatus(order.id, 'preparing')}
-                                                    className="flex-1 bg-blue-600 text-white py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition"
-                                                >
-                                                    Bắt đầu chuẩn bị
-                                                </button>
-                                                <button
-                                                    onClick={() => handleCancelOrder(order.id)}
-                                                    className="px-4 bg-red-600 text-white py-2 rounded-lg text-sm font-medium hover:bg-red-700 transition"
-                                                >
-                                                    Hủy
-                                                </button>
-                                            </>
-                                        )}
-                                        {order.status === 'preparing' && (
-                                            <button
-                                                onClick={() => handleUpdateStatus(order.id, 'ready')}
-                                                className="flex-1 bg-green-600 text-white py-2 rounded-lg text-sm font-medium hover:bg-green-700 transition"
-                                            >
-                                                Đã sẵn sàng
-                                            </button>
-                                        )}
-                                        {order.status === 'ready' && (
-                                            <button
-                                                onClick={() => handleUpdateStatus(order.id, 'completed')}
-                                                className="flex-1 bg-gray-600 text-white py-2 rounded-lg text-sm font-medium hover:bg-gray-700 transition"
-                                            >
-                                                Hoàn thành
-                                            </button>
-                                        )}
+                                        <button
+                                            onClick={() => handleUpdateStatus(order.id, 'completed')}
+                                            className="flex-1 bg-green-600 text-white py-2 rounded-lg text-sm font-medium hover:bg-green-700 transition"
+                                        >
+                                            Hoàn thành
+                                        </button>
                                     </div>
                                 )}
 
@@ -352,6 +271,16 @@ const OrderManagement = () => {
                     })
                 )}
             </div>
+
+            {/* Modal */}
+            <Modal
+                isOpen={modal.isOpen}
+                onClose={modal.close}
+                handleConfirm={modal.handleConfirm}
+                message={modal.message}
+                title={modal.title}
+                type={modal.type}
+            />
         </div>
     );
 };

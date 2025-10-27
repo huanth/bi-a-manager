@@ -8,6 +8,8 @@ import OrderModal from './OrderModal';
 import { RevenueTransaction } from '../types/revenue';
 import { Order } from '../types/order';
 import LoadingSpinner from './LoadingSpinner';
+import Modal from './Modal';
+import { useModal } from '../hooks/useModal';
 
 interface BilliardTablesProps {
     serviceMode?: boolean; // Chế độ phục vụ - cho phép cả owner phục vụ bàn
@@ -16,6 +18,7 @@ interface BilliardTablesProps {
 const BilliardTables = ({ serviceMode = false }: BilliardTablesProps) => {
     const { hasRole, user } = useAuth();
     const isOwner = hasRole('owner');
+    const modal = useModal();
 
     // Khởi tạo với mảng rỗng, sẽ load từ API
     const [tables, setTables] = useState<BilliardTable[]>([]);
@@ -147,24 +150,26 @@ const BilliardTables = ({ serviceMode = false }: BilliardTablesProps) => {
 
     // Xử lý các actions
     const handleStartTable = (tableId: number) => {
-        if (confirm('Xác nhận bắt đầu bàn này?')) {
+        modal.showConfirm('Xác nhận bắt đầu bàn này?', () => {
             const now = new Date();
             const hours = now.getHours().toString().padStart(2, '0');
             const minutes = now.getMinutes().toString().padStart(2, '0');
             const startTime = `${hours}:${minutes}`;
 
+            const table = tables.find(t => t.id === tableId);
             setTables(tables.map(table =>
                 table.id === tableId
                     ? { ...table, status: 'playing', startTime, duration: 0 }
                     : table
             ));
-        }
+            modal.showSuccess(`Bắt đầu bàn ${table?.name || ''} thành công!`);
+        });
     };
 
     const handleEndTable = async (tableId: number) => {
         const table = tables.find(t => t.id === tableId);
         if (!table || !table.startTime) {
-            alert('Không tìm thấy thông tin bàn hoặc thời gian bắt đầu');
+            modal.showError('Không tìm thấy thông tin bàn hoặc thời gian bắt đầu');
             return;
         }
 
@@ -194,9 +199,9 @@ const BilliardTables = ({ serviceMode = false }: BilliardTablesProps) => {
                 startDate.setDate(startDate.getDate() - 1);
             }
 
-            // Lọc các đơn hàng trong phiên chơi: cùng bàn, không bị hủy, và được tạo trong khoảng thời gian phiên chơi
+            // Lọc các đơn hàng trong phiên chơi: cùng bàn, và được tạo trong khoảng thời gian phiên chơi
             const tableOrders = orders.filter(order => {
-                if (order.tableId !== tableId || order.status === 'cancelled') {
+                if (order.tableId !== tableId) {
                     return false;
                 }
 
@@ -238,7 +243,7 @@ const BilliardTables = ({ serviceMode = false }: BilliardTablesProps) => {
                 await saveData(DB_KEYS.TABLES, updatedTables);
             } catch (error) {
                 console.error('Error saving table status:', error);
-                alert('Có lỗi xảy ra khi lưu trạng thái bàn');
+                modal.showError('Có lỗi xảy ra khi lưu trạng thái bàn');
                 return;
             }
 
@@ -260,13 +265,16 @@ const BilliardTables = ({ serviceMode = false }: BilliardTablesProps) => {
 
                 await saveData(DB_KEYS.REVENUE, [...revenueTransactions, newTransaction]);
 
+                // Thông báo thành công
+                modal.showSuccess(`Thanh toán thành công!\nTổng tiền: ${totalAmount.toLocaleString('vi-VN')}đ`);
+
                 // Đánh dấu các đơn hàng trong phiên chơi hiện tại đã được thanh toán
                 // Chỉ đánh dấu những đơn hàng có trong orderDetails (đã được lọc theo thời gian)
                 const orders = await getData<Order[]>(DB_KEYS.ORDERS, []);
                 const orderIdsInSession = new Set(orderDetails.map(o => o.id));
                 const updatedOrders = orders.map(order => {
-                    // Chỉ đánh dấu completed nếu đơn hàng thuộc phiên chơi hiện tại
-                    if (orderIdsInSession.has(order.id) && order.status !== 'completed' && order.status !== 'cancelled') {
+                    // Chỉ đánh dấu completed nếu đơn hàng thuộc phiên chơi hiện tại và đang pending
+                    if (orderIdsInSession.has(order.id) && order.status === 'pending') {
                         return {
                             ...order,
                             status: 'completed' as const,
@@ -334,13 +342,15 @@ const BilliardTables = ({ serviceMode = false }: BilliardTablesProps) => {
     };
 
     const handleMaintenanceComplete = (tableId: number) => {
-        if (confirm('Hoàn thành bảo trì bàn này?')) {
+        modal.showConfirm('Hoàn thành bảo trì bàn này?', () => {
+            const table = tables.find(t => t.id === tableId);
             setTables(tables.map(table =>
                 table.id === tableId
                     ? { ...table, status: 'empty' }
                     : table
             ));
-        }
+            modal.showSuccess(`Hoàn thành bảo trì bàn ${table?.name || ''}!`);
+        });
     };
 
     // Quản lý bàn (chỉ dành cho owner)
@@ -368,7 +378,7 @@ const BilliardTables = ({ serviceMode = false }: BilliardTablesProps) => {
         e.preventDefault();
 
         if (!formData.name || !formData.defaultPrice) {
-            alert('Vui lòng điền đầy đủ thông tin');
+            modal.showError('Vui lòng điền đầy đủ thông tin');
             return;
         }
 
@@ -385,6 +395,7 @@ const BilliardTables = ({ serviceMode = false }: BilliardTablesProps) => {
                     } as BilliardTable
                     : table
             ));
+            modal.showSuccess('Cập nhật bàn thành công!');
         } else {
             // Add new table
             const newTable: BilliardTable = {
@@ -395,23 +406,26 @@ const BilliardTables = ({ serviceMode = false }: BilliardTablesProps) => {
                 pricePerHour: formData.defaultPrice, // Giữ để tương thích
             };
             setTables([...tables, newTable]);
+            modal.showSuccess('Thêm bàn mới thành công!');
         }
 
         handleCloseModal();
     };
 
     const handleDelete = (id: number) => {
-        if (confirm('Bạn có chắc chắn muốn xóa bàn này?')) {
+        modal.showConfirm('Bạn có chắc chắn muốn xóa bàn này?', () => {
             setTables(tables.filter(table => table.id !== id));
-        }
+            modal.showSuccess('Xóa bàn thành công!');
+        });
     };
 
     // Export/Import JSON
     const handleExport = async () => {
         try {
             await exportToJSON();
+            modal.showSuccess('Export dữ liệu thành công!');
         } catch (error) {
-            alert('Lỗi khi export dữ liệu');
+            modal.showError('Lỗi khi export dữ liệu');
         }
     };
 
@@ -423,9 +437,9 @@ const BilliardTables = ({ serviceMode = false }: BilliardTablesProps) => {
                 // Reload tables sau khi import
                 const importedTables = await getData<BilliardTable[]>(DB_KEYS.TABLES, initialTables);
                 setTables(importedTables);
-                alert('Import dữ liệu thành công!');
+                modal.showSuccess('Import dữ liệu thành công!');
             } catch (error) {
-                alert(`Lỗi import: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                modal.showError(`Lỗi import: ${error instanceof Error ? error.message : 'Unknown error'}`);
             }
         }
     };
@@ -950,6 +964,16 @@ const BilliardTables = ({ serviceMode = false }: BilliardTablesProps) => {
                     onOrderComplete={handleOrderComplete}
                 />
             )}
+
+            {/* Modal */}
+            <Modal
+                isOpen={modal.isOpen}
+                onClose={modal.close}
+                handleConfirm={modal.handleConfirm}
+                message={modal.message}
+                title={modal.title}
+                type={modal.type}
+            />
         </div>
     );
 };

@@ -3,12 +3,15 @@ import { BilliardTable, TableStatus, TimePrice } from '../types/table';
 import { getData, getDataSync, saveData, DB_KEYS, loadDatabaseFromFile } from '../services/database';
 import { initialTables } from '../data/initialData';
 import LoadingSpinner from './LoadingSpinner';
+import Modal from './Modal';
+import { useModal } from '../hooks/useModal';
 
 const TableManagement = () => {
     // Khởi tạo với mảng rỗng, sẽ load từ API
     const [tables, setTables] = useState<BilliardTable[]>([]);
 
     const [loading, setLoading] = useState(true);
+    const modal = useModal();
     const [showModal, setShowModal] = useState(false);
     const [editingTable, setEditingTable] = useState<BilliardTable | null>(null);
     const [formData, setFormData] = useState<Partial<BilliardTable>>({
@@ -91,7 +94,7 @@ const TableManagement = () => {
 
     const handleAddTimePrice = () => {
         if (!timePriceForm.startTime || !timePriceForm.endTime || !timePriceForm.pricePerHour || !timePriceForm.label) {
-            alert('Vui lòng điền đầy đủ thông tin khoảng thời gian');
+            modal.showError('Vui lòng điền đầy đủ thông tin khoảng thời gian');
             return;
         }
 
@@ -109,7 +112,7 @@ const TableManagement = () => {
         });
 
         if (hasConflict) {
-            alert('Khoảng thời gian này đã trùng với khoảng thời gian khác. Vui lòng chọn khoảng thời gian khác.');
+            modal.showError('Khoảng thời gian này đã trùng với khoảng thời gian khác. Vui lòng chọn khoảng thời gian khác.');
             return;
         }
 
@@ -153,7 +156,7 @@ const TableManagement = () => {
         e.preventDefault();
 
         if (!formData.name || !formData.defaultPrice) {
-            alert('Vui lòng điền đầy đủ thông tin');
+            modal.showError('Vui lòng điền đầy đủ thông tin');
             return;
         }
 
@@ -171,6 +174,7 @@ const TableManagement = () => {
                     } as BilliardTable
                     : table
             ));
+            modal.showSuccess('Cập nhật bàn thành công!');
         } else {
             // Add new table
             const newTable: BilliardTable = {
@@ -182,15 +186,17 @@ const TableManagement = () => {
                 pricePerHour: formData.defaultPrice, // Giữ để tương thích
             };
             setTables([...tables, newTable]);
+            modal.showSuccess('Thêm bàn mới thành công!');
         }
 
         handleCloseModal();
     };
 
     const handleDelete = (id: number) => {
-        if (confirm('Bạn có chắc chắn muốn xóa bàn này?')) {
+        modal.showConfirm('Bạn có chắc chắn muốn xóa bàn này?', () => {
             setTables(tables.filter(table => table.id !== id));
-        }
+            modal.showSuccess('Xóa bàn thành công!');
+        });
     };
 
     const stats = {
@@ -504,6 +510,16 @@ const TableManagement = () => {
                     </div>
                 </div>
             )}
+
+            {/* Modal */}
+            <Modal
+                isOpen={modal.isOpen}
+                onClose={modal.close}
+                handleConfirm={modal.handleConfirm}
+                message={modal.message}
+                title={modal.title}
+                type={modal.type}
+            />
         </div>
     );
 };
