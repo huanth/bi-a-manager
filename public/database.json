@@ -1,0 +1,305 @@
+{
+  "tables": [
+    {
+      "id": 1,
+      "name": "Bàn 1",
+      "status": "empty",
+      "pricePerHour": 100000,
+      "currentPlayer": "Nguyễn Văn A",
+      "defaultPrice": 100000,
+      "timePrices": []
+    },
+    {
+      "id": 2,
+      "name": "Bàn 2",
+      "status": "playing",
+      "pricePerHour": 100000,
+      "startTime": "16:01",
+      "duration": 20,
+      "defaultPrice": 100000,
+      "timePrices": []
+    },
+    {
+      "id": 3,
+      "name": "Bàn 3",
+      "status": "empty",
+      "pricePerHour": 120000,
+      "currentPlayer": "Trần Thị B",
+      "defaultPrice": 120000,
+      "timePrices": []
+    },
+    {
+      "id": 4,
+      "name": "Bàn 4",
+      "status": "playing",
+      "pricePerHour": 100000,
+      "defaultPrice": 100000,
+      "timePrices": []
+    },
+    {
+      "id": 5,
+      "name": "Bàn 5",
+      "status": "empty",
+      "pricePerHour": 100000,
+      "defaultPrice": 100000,
+      "timePrices": []
+    },
+    {
+      "id": 6,
+      "name": "Bàn 6",
+      "status": "playing",
+      "pricePerHour": 120000,
+      "currentPlayer": "Lê Văn C",
+      "startTime": "14:15",
+      "duration": 126,
+      "defaultPrice": 120000,
+      "timePrices": []
+    },
+    {
+      "id": 7,
+      "name": "Bàn 7",
+      "status": "playing",
+      "pricePerHour": 100000,
+      "defaultPrice": 100000,
+      "timePrices": [],
+      "startTime": "16:21",
+      "duration": 0
+    },
+    {
+      "id": 8,
+      "name": "Bàn 8",
+      "status": "empty",
+      "pricePerHour": 100000,
+      "defaultPrice": 100000,
+      "timePrices": []
+    },
+    {
+      "id": 9,
+      "name": "Bàn Vip",
+      "status": "playing",
+      "defaultPrice": 50000,
+      "timePrices": [
+        {
+          "id": 1,
+          "startTime": "08:00",
+          "endTime": "17:00",
+          "pricePerHour": 100000,
+          "label": "Sáng"
+        },
+        {
+          "id": 2,
+          "startTime": "17:00",
+          "endTime": "23:00",
+          "pricePerHour": 150000,
+          "label": "Tối"
+        }
+      ],
+      "pricePerHour": 50000,
+      "startTime": "16:19",
+      "duration": 2
+    }
+  ],
+  "customers": [],
+  "orders": [],
+  "revenue": [],
+  "menu": [
+    {
+      "id": 1,
+      "name": "Bánh mì pate",
+      "category": "food",
+      "price": 20000,
+      "description": "Bánh mì pate thịt nguội",
+      "isActive": true
+    },
+    {
+      "id": 2,
+      "name": "Bánh mì chả cá",
+      "category": "food",
+      "price": 25000,
+      "description": "Bánh mì chả cá chiên",
+      "isActive": true
+    },
+    {
+      "id": 3,
+      "name": "Bánh mì thịt nướng",
+      "category": "food",
+      "price": 30000,
+      "description": "Bánh mì thịt nướng đặc biệt",
+      "isActive": true
+    },
+    {
+      "id": 4,
+      "name": "Bánh mì trứng ốp la",
+      "category": "food",
+      "price": 20000,
+      "description": "Bánh mì trứng ốp la",
+      "isActive": true
+    },
+    {
+      "id": 5,
+      "name": "Xôi gà",
+      "category": "food",
+      "price": 35000,
+      "description": "Xôi gà thơm ngon",
+      "isActive": true
+    },
+    {
+      "id": 6,
+      "name": "Phở bò",
+      "category": "food",
+      "price": 50000,
+      "description": "Phở bò truyền thống",
+      "isActive": true
+    },
+    {
+      "id": 7,
+      "name": "Bún chả",
+      "category": "food",
+      "price": 45000,
+      "description": "Bún chả Hà Nội",
+      "isActive": true
+    },
+    {
+      "id": 8,
+      "name": "Khoai tây chiên",
+      "category": "food",
+      "price": 30000,
+      "description": "Khoai tây chiên giòn",
+      "isActive": true
+    },
+    {
+      "id": 101,
+      "name": "Coca Cola",
+      "category": "drink",
+      "price": 15000,
+      "description": "Nước ngọt có ga",
+      "isActive": true
+    },
+    {
+      "id": 102,
+      "name": "Pepsi",
+      "category": "drink",
+      "price": 15000,
+      "description": "Nước ngọt có ga",
+      "isActive": true
+    },
+    {
+      "id": 103,
+      "name": "7Up",
+      "category": "drink",
+      "price": 15000,
+      "description": "Nước ngọt có ga",
+      "isActive": true
+    },
+    {
+      "id": 104,
+      "name": "Trà đá",
+      "category": "drink",
+      "price": 10000,
+      "description": "Trà đá mát lạnh",
+      "isActive": true
+    },
+    {
+      "id": 105,
+      "name": "Trà chanh",
+      "category": "drink",
+      "price": 20000,
+      "description": "Trà chanh giải nhiệt",
+      "isActive": true
+    },
+    {
+      "id": 106,
+      "name": "Nước suối",
+      "category": "drink",
+      "price": 10000,
+      "description": "Nước suối Lavie",
+      "isActive": true
+    },
+    {
+      "id": 107,
+      "name": "Cà phê đen",
+      "category": "drink",
+      "price": 20000,
+      "description": "Cà phê đen đậm đà",
+      "isActive": true
+    },
+    {
+      "id": 108,
+      "name": "Cà phê sữa",
+      "category": "drink",
+      "price": 25000,
+      "description": "Cà phê sữa ngọt ngào",
+      "isActive": true
+    },
+    {
+      "id": 109,
+      "name": "Nước cam ép",
+      "category": "drink",
+      "price": 30000,
+      "description": "Nước cam ép tươi",
+      "isActive": true
+    },
+    {
+      "id": 110,
+      "name": "Sinh tố mãng cầu",
+      "category": "drink",
+      "price": 35000,
+      "description": "Sinh tố mãng cầu mát lạnh",
+      "isActive": true
+    },
+    {
+      "id": 111,
+      "name": "Sinh tố dưa hấu",
+      "category": "drink",
+      "price": 30000,
+      "description": "Sinh tố dưa hấu ngọt mát",
+      "isActive": true
+    },
+    {
+      "id": 112,
+      "name": "Bia Sài Gòn",
+      "category": "drink",
+      "price": 25000,
+      "description": "Bia Sài Gòn lạnh",
+      "isActive": true
+    },
+    {
+      "id": 113,
+      "name": "Bia Heineken",
+      "category": "drink",
+      "price": 40000,
+      "description": "Bia Heineken nhập khẩu",
+      "isActive": true
+    }
+  ],
+  "employees": [
+    {
+      "id": 1,
+      "fullName": "Huân",
+      "phone": "0123123123",
+      "username": "dev",
+      "password": "dev",
+      "status": "active",
+      "startDate": "2025-10-27",
+      "createdAt": "2025-10-27"
+    }
+  ],
+  "users": [
+    {
+      "id": 1,
+      "username": "admin",
+      "password": "admin",
+      "role": "owner",
+      "fullName": "Quản trị viên",
+      "createdAt": "2025-01-27"
+    },
+    {
+      "id": 2,
+      "username": "dev",
+      "password": "dev",
+      "role": "employee",
+      "fullName": "Huân",
+      "createdAt": "2025-10-27"
+    }
+  ]
+}
