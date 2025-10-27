@@ -66,8 +66,8 @@ const EmployeeManagement = () => {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        if (!formData.fullName || !formData.phone || !formData.username || !formData.password) {
-            alert('Vui lòng điền đầy đủ thông tin bắt buộc');
+        if (!formData.fullName || !formData.phone) {
+            alert('Vui lòng điền đầy đủ thông tin bắt buộc (Họ tên và Số điện thoại)');
             return;
         }
 
@@ -83,43 +83,71 @@ const EmployeeManagement = () => {
                 const users = await getData<UserAccount[]>(DB_KEYS.USERS, []);
                 const updatedUsers = users.map(user =>
                     user.username === editingEmployee.username
-                        ? { ...user, username: updatedEmployee.username, password: updatedEmployee.password, fullName: updatedEmployee.fullName }
+                        ? { ...user, username: updatedEmployee.username, password: updatedEmployee.password || user.password, fullName: updatedEmployee.fullName }
                         : user
                 );
-                saveData(DB_KEYS.USERS, updatedUsers);
+                await saveData(DB_KEYS.USERS, updatedUsers);
             } else {
-                // Check if username already exists
+                // Load users để kiểm tra và tạo tài khoản
                 const users = await getData<UserAccount[]>(DB_KEYS.USERS, []);
-                const usernameExists = users.some(u => u.username.toLowerCase() === formData.username!.toLowerCase());
 
-                if (usernameExists) {
-                    alert('Tên đăng nhập đã tồn tại. Vui lòng chọn tên khác.');
-                    return;
+                // Tự động tạo username nếu không nhập (dựa trên số điện thoại hoặc tên)
+                let username = formData.username?.trim();
+                if (!username) {
+                    // Tạo username từ số điện thoại (bỏ số 0 đầu và các ký tự đặc biệt)
+                    const phoneClean = formData.phone!.replace(/\D/g, '').replace(/^0+/, '');
+                    username = `nv${phoneClean}`;
+
+                    // Kiểm tra xem username đã tồn tại chưa, nếu có thì thêm số vào cuối
+                    let finalUsername = username;
+                    let counter = 1;
+                    while (users.some(u => u.username.toLowerCase() === finalUsername.toLowerCase())) {
+                        finalUsername = `${username}${counter}`;
+                        counter++;
+                    }
+                    username = finalUsername;
+                } else {
+                    // Kiểm tra username đã tồn tại chưa
+                    const usernameExists = users.some(u => u.username.toLowerCase() === username!.toLowerCase());
+                    if (usernameExists) {
+                        alert('Tên đăng nhập đã tồn tại. Vui lòng chọn tên khác.');
+                        return;
+                    }
                 }
 
-                // Add new employee
+                // Tự động tạo mật khẩu nếu không nhập (mặc định: 123456)
+                const password = formData.password?.trim() || '123456';
+
+                // Tạo user account TRƯỚC
+                const newUser: UserAccount = {
+                    id: users.length > 0 ? Math.max(...users.map(u => u.id)) + 1 : 1,
+                    username: username,
+                    password: password,
+                    role: 'employee',
+                    fullName: formData.fullName!,
+                    createdAt: new Date().toISOString().split('T')[0],
+                };
+
+                // Lưu user vào database TRƯỚC khi tạo employee
+                await saveData(DB_KEYS.USERS, [...users, newUser]);
+
+                // Sau đó mới tạo employee
                 const newEmployee: Employee = {
                     id: employees.length > 0 ? Math.max(...employees.map(e => e.id)) + 1 : 1,
                     fullName: formData.fullName!,
                     phone: formData.phone!,
-                    username: formData.username!,
-                    password: formData.password!,
+                    username: username,
+                    password: password,
                     status: formData.status || 'active',
                     startDate: formData.startDate || new Date().toISOString().split('T')[0],
                     createdAt: new Date().toISOString().split('T')[0],
                 };
+
+                // Cập nhật state employees (useEffect sẽ tự động lưu vào database)
                 setEmployees([...employees, newEmployee]);
 
-                // Create user account for login
-                const newUser: UserAccount = {
-                    id: users.length > 0 ? Math.max(...users.map(u => u.id)) + 1 : 1,
-                    username: newEmployee.username,
-                    password: newEmployee.password,
-                    role: 'employee',
-                    fullName: newEmployee.fullName,
-                    createdAt: new Date().toISOString().split('T')[0],
-                };
-                saveData(DB_KEYS.USERS, [...users, newUser]);
+                // Hiển thị thông tin tài khoản đã tạo
+                alert(`Đã tạo tài khoản đăng nhập:\nTài khoản: ${username}\nMật khẩu: ${password}\n\nVui lòng ghi nhớ thông tin này để đăng nhập!`);
             }
 
             handleCloseModal();
@@ -130,22 +158,29 @@ const EmployeeManagement = () => {
     };
 
     const handleDelete = async (id: number) => {
-        if (confirm('Bạn có chắc chắn muốn xóa nhân viên này?')) {
+        if (confirm('Bạn có chắc chắn muốn xóa nhân viên này? Tài khoản đăng nhập cũng sẽ bị xóa.')) {
             const employee = employees.find(emp => emp.id === id);
 
-            // Xóa nhân viên
-            setEmployees(employees.filter(emp => emp.id !== id));
+            if (!employee) {
+                alert('Không tìm thấy nhân viên cần xóa');
+                return;
+            }
 
-            // Xóa tài khoản đăng nhập nếu có
-            if (employee?.username) {
+            // Xóa tài khoản đăng nhập TRƯỚC
+            if (employee.username) {
                 try {
                     const users = await getData<UserAccount[]>(DB_KEYS.USERS, []);
                     const updatedUsers = users.filter(user => user.username !== employee.username);
-                    saveData(DB_KEYS.USERS, updatedUsers);
+                    await saveData(DB_KEYS.USERS, updatedUsers);
                 } catch (error) {
                     console.error('Error deleting user account:', error);
+                    alert('Có lỗi khi xóa tài khoản đăng nhập. Quá trình xóa nhân viên đã bị hủy.');
+                    return;
                 }
             }
+
+            // Sau đó mới xóa nhân viên (useEffect sẽ tự động lưu vào database)
+            setEmployees(employees.filter(emp => emp.id !== id));
         }
     };
 
@@ -333,32 +368,38 @@ const EmployeeManagement = () => {
 
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Tài khoản đăng nhập <span className="text-red-500">*</span>
+                                    Tài khoản đăng nhập {!editingEmployee && <span className="text-gray-500 text-xs">(Tùy chọn - sẽ tự động tạo)</span>}
                                 </label>
                                 <input
                                     type="text"
                                     value={formData.username || ''}
                                     onChange={(e) => setFormData({ ...formData, username: e.target.value })}
                                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                                    required
+                                    placeholder={editingEmployee ? '' : 'Để trống để tự động tạo từ số điện thoại'}
                                     disabled={!!editingEmployee}
                                 />
                                 {editingEmployee && (
                                     <p className="text-xs text-gray-500 mt-1">Không thể thay đổi tài khoản đăng nhập</p>
                                 )}
+                                {!editingEmployee && (
+                                    <p className="text-xs text-gray-500 mt-1">Nếu để trống, hệ thống sẽ tự động tạo tài khoản từ số điện thoại</p>
+                                )}
                             </div>
 
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Mật khẩu <span className="text-red-500">*</span>
+                                    Mật khẩu {!editingEmployee && <span className="text-gray-500 text-xs">(Tùy chọn - mặc định: 123456)</span>}
                                 </label>
                                 <input
                                     type="password"
                                     value={formData.password || ''}
                                     onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                                    required
+                                    placeholder={editingEmployee ? '' : 'Để trống để dùng mật khẩu mặc định: 123456'}
                                 />
+                                {!editingEmployee && (
+                                    <p className="text-xs text-gray-500 mt-1">Nếu để trống, mật khẩu mặc định là: 123456</p>
+                                )}
                             </div>
 
                             <div>

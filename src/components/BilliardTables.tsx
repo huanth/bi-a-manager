@@ -6,6 +6,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { getCurrentPrice, getCurrentTimeLabel, calculateTotalPrice } from '../utils/pricing';
 import OrderModal from './OrderModal';
 import { RevenueTransaction } from '../types/revenue';
+import { Order } from '../types/order';
 import LoadingSpinner from './LoadingSpinner';
 
 interface BilliardTablesProps {
@@ -31,6 +32,8 @@ const BilliardTables = ({ serviceMode = false }: BilliardTablesProps) => {
     const [showPaymentModal, setShowPaymentModal] = useState(false);
     const [paymentTable, setPaymentTable] = useState<BilliardTable | null>(null);
     const [paymentDetails, setPaymentDetails] = useState<{ total: number; details: { period: string; hours: number; price: number; amount: number }[] } | null>(null);
+    const [orderTotal, setOrderTotal] = useState<number>(0);
+    const [orderDetails, setOrderDetails] = useState<Order[]>([]);
     const [currentTime, setCurrentTime] = useState(new Date());
     const [showOrderModal, setShowOrderModal] = useState(false);
     const [orderTable, setOrderTable] = useState<BilliardTable | null>(null);
@@ -158,16 +161,34 @@ const BilliardTables = ({ serviceMode = false }: BilliardTablesProps) => {
         }
     };
 
-    const handleEndTable = (tableId: number) => {
+    const handleEndTable = async (tableId: number) => {
         const table = tables.find(t => t.id === tableId);
         if (!table || !table.startTime) {
             alert('Không tìm thấy thông tin bàn hoặc thời gian bắt đầu');
             return;
         }
 
-        // Tính toán chi tiết thanh toán
+        // Tính toán chi tiết thanh toán bàn
         const now = new Date();
         const priceDetails = calculateTotalPrice(table, table.startTime, now);
+
+        // Load và tính tổng tiền đơn hàng của bàn này
+        try {
+            const orders = await getData<Order[]>(DB_KEYS.ORDERS, []);
+            const tableOrders = orders.filter(order =>
+                order.tableId === tableId &&
+                order.status !== 'cancelled'
+            );
+
+            const totalOrderAmount = tableOrders.reduce((sum, order) => sum + order.totalAmount, 0);
+
+            setOrderTotal(totalOrderAmount);
+            setOrderDetails(tableOrders);
+        } catch (error) {
+            console.error('Error loading orders:', error);
+            setOrderTotal(0);
+            setOrderDetails([]);
+        }
 
         setPaymentTable(table);
         setPaymentDetails(priceDetails);
@@ -176,29 +197,71 @@ const BilliardTables = ({ serviceMode = false }: BilliardTablesProps) => {
 
     const handleConfirmPayment = async () => {
         if (paymentTable && paymentDetails) {
-            // Cập nhật trạng thái bàn
-            setTables(tables.map(table =>
-                table.id === paymentTable.id
-                    ? { ...table, status: 'empty', startTime: undefined, duration: undefined }
-                    : table
-            ));
+            // Tính tổng tiền bao gồm cả đơn hàng
+            const totalAmount = paymentDetails.total + orderTotal;
 
-            // Lưu giao dịch doanh thu
+            // Cập nhật trạng thái bàn trong state
+            const updatedTables: BilliardTable[] = tables.map(table =>
+                table.id === paymentTable.id
+                    ? { ...table, status: 'empty' as TableStatus, startTime: undefined, duration: undefined } as BilliardTable
+                    : table
+            );
+            setTables(updatedTables);
+
+            // Lưu trạng thái bàn vào database ngay lập tức
+            try {
+                await saveData(DB_KEYS.TABLES, updatedTables);
+            } catch (error) {
+                console.error('Error saving table status:', error);
+                alert('Có lỗi xảy ra khi lưu trạng thái bàn');
+                return;
+            }
+
+            // Lưu giao dịch doanh thu (bao gồm cả tiền bàn và đơn hàng)
             try {
                 const revenueTransactions = await getData<RevenueTransaction[]>(DB_KEYS.REVENUE, []);
 
+                // Lưu giao dịch tổng
                 const newTransaction: RevenueTransaction = {
                     id: Date.now(),
                     type: 'table',
                     tableId: paymentTable.id,
                     tableName: paymentTable.name,
-                    amount: paymentDetails.total,
+                    amount: totalAmount,
                     createdAt: new Date().toISOString(),
                     createdBy: user?.username || 'unknown',
-                    note: `Thanh toán bàn ${paymentTable.name}`,
+                    note: `Thanh toán bàn ${paymentTable.name} (${paymentDetails.total.toLocaleString('vi-VN')}đ chơi bàn + ${orderTotal.toLocaleString('vi-VN')}đ đơn hàng)`,
                 };
 
                 await saveData(DB_KEYS.REVENUE, [...revenueTransactions, newTransaction]);
+
+                // Đánh dấu các đơn hàng đã được thanh toán (đổi status thành completed nếu chưa)
+                // và đảm bảo không tạo revenue transaction trùng cho các đơn hàng này
+                const orders = await getData<Order[]>(DB_KEYS.ORDERS, []);
+                const updatedOrders = orders.map(order => {
+                    if (order.tableId === paymentTable.id && order.status !== 'completed' && order.status !== 'cancelled') {
+                        return {
+                            ...order,
+                            status: 'completed' as const,
+                            completedAt: new Date().toISOString(),
+                        };
+                    }
+                    return order;
+                });
+                await saveData(DB_KEYS.ORDERS, updatedOrders);
+
+                // Xóa các revenue transaction trùng của đơn hàng (nếu có) vì đã tính vào bàn
+                const finalRevenueTransactions = await getData<RevenueTransaction[]>(DB_KEYS.REVENUE, []);
+                const filteredRevenue = finalRevenueTransactions.filter(transaction => {
+                    // Giữ lại transaction vừa tạo hoặc transaction không phải của đơn hàng thuộc bàn này
+                    if (transaction.id === newTransaction.id) return true;
+                    if (transaction.type === 'order' && transaction.tableId === paymentTable.id) {
+                        // Đây là transaction của đơn hàng thuộc bàn này, cần xóa để tránh tính trùng
+                        return false;
+                    }
+                    return true;
+                });
+                await saveData(DB_KEYS.REVENUE, filteredRevenue);
             } catch (error) {
                 console.error('Error saving revenue transaction:', error);
             }
@@ -206,6 +269,8 @@ const BilliardTables = ({ serviceMode = false }: BilliardTablesProps) => {
             setShowPaymentModal(false);
             setPaymentTable(null);
             setPaymentDetails(null);
+            setOrderTotal(0);
+            setOrderDetails([]);
         }
     };
 
@@ -213,6 +278,8 @@ const BilliardTables = ({ serviceMode = false }: BilliardTablesProps) => {
         setShowPaymentModal(false);
         setPaymentTable(null);
         setPaymentDetails(null);
+        setOrderTotal(0);
+        setOrderDetails([]);
     };
 
     const handleOpenOrderModal = (table: BilliardTable) => {
@@ -725,11 +792,11 @@ const BilliardTables = ({ serviceMode = false }: BilliardTablesProps) => {
                                 </div>
                             </div>
 
-                            {/* Chi tiết tính tiền */}
+                            {/* Chi tiết tính tiền bàn */}
                             {paymentDetails.details.length > 0 && (
                                 <div className="border border-gray-200 rounded-lg overflow-hidden">
                                     <div className="bg-gray-100 px-4 py-2 border-b border-gray-200">
-                                        <p className="font-semibold text-gray-700">Chi tiết tính tiền</p>
+                                        <p className="font-semibold text-gray-700">Chi tiết tính tiền chơi bàn</p>
                                     </div>
                                     <div className="divide-y divide-gray-200">
                                         {paymentDetails.details.map((detail, index) => (
@@ -748,16 +815,65 @@ const BilliardTables = ({ serviceMode = false }: BilliardTablesProps) => {
                                             </div>
                                         ))}
                                     </div>
+                                    <div className="px-4 py-3 bg-gray-50 border-t border-gray-200">
+                                        <div className="flex justify-between items-center">
+                                            <span className="text-sm font-semibold text-gray-700">Tổng tiền chơi bàn:</span>
+                                            <span className="text-lg font-bold text-indigo-600">
+                                                {paymentDetails.total.toLocaleString('vi-VN')}đ
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Chi tiết đơn hàng */}
+                            {orderDetails.length > 0 && (
+                                <div className="border border-purple-200 rounded-lg overflow-hidden">
+                                    <div className="bg-purple-100 px-4 py-2 border-b border-purple-200">
+                                        <p className="font-semibold text-purple-700">Chi tiết đơn hàng ({orderDetails.length} đơn)</p>
+                                    </div>
+                                    <div className="divide-y divide-purple-100">
+                                        {orderDetails.map((order) => (
+                                            <div key={order.id} className="px-4 py-3">
+                                                <div className="flex justify-between items-start mb-1">
+                                                    <span className="text-sm text-gray-600">Đơn #{order.id}</span>
+                                                    <span className="text-sm font-semibold text-gray-800">
+                                                        {order.items.length} món
+                                                    </span>
+                                                </div>
+                                                <div className="text-right">
+                                                    <span className="text-sm font-bold text-purple-600">
+                                                        {order.totalAmount.toLocaleString('vi-VN')}đ
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <div className="px-4 py-3 bg-purple-50 border-t border-purple-200">
+                                        <div className="flex justify-between items-center">
+                                            <span className="text-sm font-semibold text-purple-700">Tổng tiền đơn hàng:</span>
+                                            <span className="text-lg font-bold text-purple-600">
+                                                {orderTotal.toLocaleString('vi-VN')}đ
+                                            </span>
+                                        </div>
+                                    </div>
                                 </div>
                             )}
 
                             {/* Tổng tiền */}
                             <div className="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-lg p-4 text-white">
-                                <div className="flex justify-between items-center">
-                                    <span className="text-lg font-semibold">Tổng tiền:</span>
-                                    <span className="text-3xl font-bold">
-                                        {paymentDetails.total.toLocaleString('vi-VN')}đ
-                                    </span>
+                                <div className="space-y-2">
+                                    <div className="flex justify-between items-center">
+                                        <span className="text-lg font-semibold">Tổng tiền:</span>
+                                        <span className="text-3xl font-bold">
+                                            {(paymentDetails.total + orderTotal).toLocaleString('vi-VN')}đ
+                                        </span>
+                                    </div>
+                                    {orderTotal > 0 && (
+                                        <div className="text-sm text-indigo-100">
+                                            ({paymentDetails.total.toLocaleString('vi-VN')}đ chơi bàn + {orderTotal.toLocaleString('vi-VN')}đ đơn hàng)
+                                        </div>
+                                    )}
                                 </div>
                             </div>
 
