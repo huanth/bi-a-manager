@@ -101,7 +101,7 @@ const BilliardTables = ({ serviceMode = false }: BilliardTablesProps) => {
         return () => clearInterval(interval);
     }, [loading]);
 
-    // Lưu dữ liệu vào localStorage mỗi khi tables thay đổi
+    // Lưu dữ liệu vào API mỗi khi tables thay đổi
     useEffect(() => {
         if (!loading) {
             saveData(DB_KEYS.TABLES, tables);

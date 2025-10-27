@@ -17,15 +17,15 @@ export const initialTables: BilliardTable[] = [
 ];
 
 /**
- * Khởi tạo database với dữ liệu mặc định (chỉ khi chưa có dữ liệu)
+ * Khởi tạo database với dữ liệu mặc định
  */
-export const initializeDatabase = (): void => {
-    const existingTables = localStorage.getItem('bi_a_manager_tables');
-    
-    if (!existingTables) {
-        // Chưa có dữ liệu, khởi tạo dữ liệu mặc định
-        saveData(DB_KEYS.TABLES, initialTables);
+export const initializeDatabase = async (): Promise<void> => {
+    try {
+        // Khởi tạo dữ liệu mặc định
+        await saveData(DB_KEYS.TABLES, initialTables);
         console.log('Database initialized with default data');
+    } catch (error) {
+        console.error('Error initializing database:', error);
     }
 };
 

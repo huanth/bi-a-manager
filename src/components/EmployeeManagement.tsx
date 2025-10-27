@@ -196,21 +196,7 @@ const EmployeeManagement = () => {
 
     const handleShowJsonData = async () => {
         try {
-            let db = await loadDatabaseFromFile();
-            
-            // Nếu dữ liệu rỗng, thử khôi phục từ backup
-            const isEmpty = Object.values(db).every(v => Array.isArray(v) && v.length === 0);
-            if (isEmpty) {
-                const backup = localStorage.getItem('bi_a_manager_backup');
-                if (backup) {
-                    try {
-                        db = JSON.parse(backup);
-                        modal.showSuccess('Đã khôi phục dữ liệu từ backup!');
-                    } catch (e) {
-                        console.error('Error parsing backup:', e);
-                    }
-                }
-            }
+            const db = await loadDatabaseFromFile();
             
             const employeesData = await getData<Employee[]>(DB_KEYS.EMPLOYEES, []);
             const usersData = await getData<UserAccount[]>(DB_KEYS.USERS, []);
@@ -225,15 +211,7 @@ const EmployeeManagement = () => {
             setShowJsonData(true);
         } catch (error) {
             console.error('Error loading JSON data:', error);
-            // Thử load từ backup
-            const backup = localStorage.getItem('bi_a_manager_backup');
-            if (backup) {
-                setJsonData(backup);
-                setShowJsonData(true);
-                modal.showSuccess('Đã tải dữ liệu từ backup localStorage');
-            } else {
-                modal.showError('Lỗi khi tải dữ liệu JSON và không có backup');
-            }
+            modal.showError('Lỗi khi tải dữ liệu JSON');
         }
     };
 

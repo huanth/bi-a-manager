@@ -60,7 +60,7 @@ const TableManagement = () => {
         loadData();
     }, []);
 
-    // Lưu dữ liệu vào localStorage mỗi khi tables thay đổi
+    // Lưu dữ liệu vào API mỗi khi tables thay đổi
     useEffect(() => {
         if (!loading) {
             saveData(DB_KEYS.TABLES, tables);
