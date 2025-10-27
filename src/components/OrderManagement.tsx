@@ -144,28 +144,28 @@ const OrderManagement = () => {
     }
 
     return (
-        <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl font-bold text-gray-800">Quản lý Đơn hàng</h2>
+        <div className="bg-white rounded-lg shadow p-4 sm:p-6">
+            <div className="flex justify-between items-center mb-4 sm:mb-6">
+                <h2 className="text-xl sm:text-2xl font-bold text-gray-800">Quản lý Đơn hàng</h2>
             </div>
 
             {/* Stats Cards */}
-            <div className="grid grid-cols-2 gap-4 mb-6">
-                <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                    <p className="text-sm text-gray-600 mb-1">Tổng đơn</p>
-                    <p className="text-2xl font-bold text-gray-800">{stats.total}</p>
+            <div className="grid grid-cols-2 gap-3 sm:gap-4 mb-4 sm:mb-6">
+                <div className="bg-gray-50 rounded-lg p-3 sm:p-4 border border-gray-200">
+                    <p className="text-xs sm:text-sm text-gray-600 mb-1">Tổng đơn</p>
+                    <p className="text-xl sm:text-2xl font-bold text-gray-800">{stats.total}</p>
                 </div>
-                <div className="bg-yellow-50 rounded-lg p-4 border border-yellow-200">
-                    <p className="text-sm text-yellow-700 mb-1">Chờ xử lý</p>
-                    <p className="text-2xl font-bold text-yellow-800">{stats.pending}</p>
+                <div className="bg-yellow-50 rounded-lg p-3 sm:p-4 border border-yellow-200">
+                    <p className="text-xs sm:text-sm text-yellow-700 mb-1">Chờ xử lý</p>
+                    <p className="text-xl sm:text-2xl font-bold text-yellow-800">{stats.pending}</p>
                 </div>
             </div>
 
             {/* Filter buttons */}
-            <div className="flex gap-2 mb-6">
+            <div className="flex flex-wrap gap-2 mb-4 sm:mb-6">
                 <button
                     onClick={() => setFilterStatus('all')}
-                    className={`px-4 py-2 rounded-lg font-medium transition ${filterStatus === 'all'
+                    className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg font-medium text-xs sm:text-sm transition whitespace-nowrap ${filterStatus === 'all'
                         ? 'bg-indigo-600 text-white'
                         : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                         }`}
@@ -174,7 +174,7 @@ const OrderManagement = () => {
                 </button>
                 <button
                     onClick={() => setFilterStatus('pending')}
-                    className={`px-4 py-2 rounded-lg font-medium transition ${filterStatus === 'pending'
+                    className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg font-medium text-xs sm:text-sm transition whitespace-nowrap ${filterStatus === 'pending'
                         ? 'bg-yellow-600 text-white'
                         : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                         }`}
@@ -183,7 +183,7 @@ const OrderManagement = () => {
                 </button>
                 <button
                     onClick={() => setFilterStatus('completed')}
-                    className={`px-4 py-2 rounded-lg font-medium transition ${filterStatus === 'completed'
+                    className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg font-medium text-xs sm:text-sm transition whitespace-nowrap ${filterStatus === 'completed'
                         ? 'bg-gray-600 text-white'
                         : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                         }`}
@@ -204,29 +204,29 @@ const OrderManagement = () => {
                         return (
                             <div
                                 key={order.id}
-                                className={`border-2 ${statusConfig.borderColor} rounded-lg p-4`}
+                                className={`border-2 ${statusConfig.borderColor} rounded-lg p-3 sm:p-4`}
                             >
-                                <div className="flex justify-between items-start mb-4">
-                                    <div>
-                                        <div className="flex items-center gap-3 mb-2">
-                                            <h3 className="text-lg font-bold text-gray-800">
+                                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-start gap-3 mb-3 sm:mb-4">
+                                    <div className="flex-1">
+                                        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-2">
+                                            <h3 className="text-base sm:text-lg font-bold text-gray-800">
                                                 Đơn #{order.id} - {order.tableName}
                                             </h3>
-                                            <span className={`px-3 py-1 rounded-full text-xs font-semibold ${statusConfig.bgColor} ${statusConfig.textColor}`}>
+                                            <span className={`px-2 sm:px-3 py-1 rounded-full text-xs font-semibold ${statusConfig.bgColor} ${statusConfig.textColor} self-start sm:self-auto`}>
                                                 {statusConfig.label}
                                             </span>
                                         </div>
-                                        <p className="text-sm text-gray-600">
+                                        <p className="text-xs sm:text-sm text-gray-600">
                                             Tạo lúc: {formatDate(order.createdAt)}
                                         </p>
                                         {order.createdBy && (
-                                            <p className="text-sm text-gray-600">
+                                            <p className="text-xs sm:text-sm text-gray-600">
                                                 Người tạo: {order.createdBy}
                                             </p>
                                         )}
                                     </div>
-                                    <div className="text-right">
-                                        <p className="text-2xl font-bold text-indigo-600">
+                                    <div className="text-left sm:text-right w-full sm:w-auto">
+                                        <p className="text-xl sm:text-2xl font-bold text-indigo-600">
                                             {order.totalAmount.toLocaleString('vi-VN')}đ
                                         </p>
                                     </div>

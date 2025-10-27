@@ -196,7 +196,22 @@ const EmployeeManagement = () => {
 
     const handleShowJsonData = async () => {
         try {
-            const db = await loadDatabaseFromFile();
+            let db = await loadDatabaseFromFile();
+            
+            // Nếu dữ liệu rỗng, thử khôi phục từ backup
+            const isEmpty = Object.values(db).every(v => Array.isArray(v) && v.length === 0);
+            if (isEmpty) {
+                const backup = localStorage.getItem('bi_a_manager_backup');
+                if (backup) {
+                    try {
+                        db = JSON.parse(backup);
+                        modal.showSuccess('Đã khôi phục dữ liệu từ backup!');
+                    } catch (e) {
+                        console.error('Error parsing backup:', e);
+                    }
+                }
+            }
+            
             const employeesData = await getData<Employee[]>(DB_KEYS.EMPLOYEES, []);
             const usersData = await getData<UserAccount[]>(DB_KEYS.USERS, []);
 
@@ -210,7 +225,15 @@ const EmployeeManagement = () => {
             setShowJsonData(true);
         } catch (error) {
             console.error('Error loading JSON data:', error);
-            modal.showError('Lỗi khi tải dữ liệu JSON');
+            // Thử load từ backup
+            const backup = localStorage.getItem('bi_a_manager_backup');
+            if (backup) {
+                setJsonData(backup);
+                setShowJsonData(true);
+                modal.showSuccess('Đã tải dữ liệu từ backup localStorage');
+            } else {
+                modal.showError('Lỗi khi tải dữ liệu JSON và không có backup');
+            }
         }
     };
 
@@ -220,9 +243,9 @@ const EmployeeManagement = () => {
     };
 
     return (
-        <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl font-bold text-gray-800">Quản lý Nhân viên</h2>
+        <div className="bg-white rounded-lg shadow p-4 sm:p-6">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-0 mb-4 sm:mb-6">
+                <h2 className="text-xl sm:text-2xl font-bold text-gray-800">Quản lý Nhân viên</h2>
                 <div className="flex gap-2">
                     <button
                         onClick={handleShowJsonData}

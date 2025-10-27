@@ -236,34 +236,34 @@ const TableManagement = () => {
     };
 
     return (
-        <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl font-bold text-gray-800">Quản lý Bàn Bi A</h2>
+        <div className="bg-white rounded-lg shadow p-4 sm:p-6">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-0 mb-4 sm:mb-6">
+                <h2 className="text-xl sm:text-2xl font-bold text-gray-800">Quản lý Bàn Bi A</h2>
                 <button
                     onClick={() => handleOpenModal()}
-                    className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition font-medium"
+                    className="w-full sm:w-auto px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition font-medium text-sm sm:text-base"
                 >
                     + Thêm bàn
                 </button>
             </div>
 
             {/* Stats Cards */}
-            <div className="grid grid-cols-4 gap-4 mb-6">
-                <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                    <p className="text-sm text-gray-600 mb-1">Tổng số bàn</p>
-                    <p className="text-2xl font-bold text-gray-800">{stats.total}</p>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-4 sm:mb-6">
+                <div className="bg-gray-50 rounded-lg p-3 sm:p-4 border border-gray-200">
+                    <p className="text-xs sm:text-sm text-gray-600 mb-1">Tổng số bàn</p>
+                    <p className="text-xl sm:text-2xl font-bold text-gray-800">{stats.total}</p>
                 </div>
-                <div className="bg-green-50 rounded-lg p-4 border border-green-200">
-                    <p className="text-sm text-green-700 mb-1">Đang chơi</p>
-                    <p className="text-2xl font-bold text-green-800">{stats.playing}</p>
+                <div className="bg-green-50 rounded-lg p-3 sm:p-4 border border-green-200">
+                    <p className="text-xs sm:text-sm text-green-700 mb-1">Đang chơi</p>
+                    <p className="text-xl sm:text-2xl font-bold text-green-800">{stats.playing}</p>
                 </div>
-                <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
-                    <p className="text-sm text-blue-700 mb-1">Đang trống</p>
-                    <p className="text-2xl font-bold text-blue-800">{stats.empty}</p>
+                <div className="bg-blue-50 rounded-lg p-3 sm:p-4 border border-blue-200">
+                    <p className="text-xs sm:text-sm text-blue-700 mb-1">Đang trống</p>
+                    <p className="text-xl sm:text-2xl font-bold text-blue-800">{stats.empty}</p>
                 </div>
-                <div className="bg-red-50 rounded-lg p-4 border border-red-200">
-                    <p className="text-sm text-red-700 mb-1">Bảo trì</p>
-                    <p className="text-2xl font-bold text-red-800">{stats.maintenance}</p>
+                <div className="bg-red-50 rounded-lg p-3 sm:p-4 border border-red-200">
+                    <p className="text-xs sm:text-sm text-red-700 mb-1">Bảo trì</p>
+                    <p className="text-xl sm:text-2xl font-bold text-red-800">{stats.maintenance}</p>
                 </div>
             </div>
 

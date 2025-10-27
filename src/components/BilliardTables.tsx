@@ -445,28 +445,28 @@ const BilliardTables = ({ serviceMode = false }: BilliardTablesProps) => {
     };
 
     return (
-        <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl font-bold text-gray-800">
+        <div className="bg-white rounded-lg shadow p-4 sm:p-6">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+                <h2 className="text-xl sm:text-2xl font-bold text-gray-800">
                     {serviceMode ? 'Phục vụ Bàn Bi A' : 'Quản lý Bàn Bi A'}
                 </h2>
-                <div className="flex gap-2 items-center">
+                <div className="flex flex-wrap gap-2 items-center w-full sm:w-auto">
                     {isOwner && !serviceMode && (
                         <>
                             <button
                                 onClick={() => handleOpenModal()}
-                                className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition font-medium"
+                                className="px-3 sm:px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition font-medium text-sm sm:text-base whitespace-nowrap"
                             >
                                 + Thêm bàn
                             </button>
                             <button
                                 onClick={handleExport}
-                                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-medium text-sm"
+                                className="px-3 sm:px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-medium text-xs sm:text-sm whitespace-nowrap"
                                 title="Export dữ liệu ra file JSON"
                             >
                                 📥 Export
                             </button>
-                            <label className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium text-sm cursor-pointer">
+                            <label className="px-3 sm:px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium text-xs sm:text-sm cursor-pointer whitespace-nowrap">
                                 📤 Import
                                 <input
                                     type="file"
@@ -478,10 +478,10 @@ const BilliardTables = ({ serviceMode = false }: BilliardTablesProps) => {
                         </>
                     )}
 
-                    <div className="flex gap-2">
+                    <div className="flex flex-wrap gap-2 w-full sm:w-auto">
                         <button
                             onClick={() => setFilterStatus('all')}
-                            className={`px-4 py-2 rounded-lg font-medium transition ${filterStatus === 'all'
+                            className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg font-medium text-xs sm:text-sm transition whitespace-nowrap ${filterStatus === 'all'
                                 ? 'bg-indigo-600 text-white'
                                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                                 }`}
@@ -490,7 +490,7 @@ const BilliardTables = ({ serviceMode = false }: BilliardTablesProps) => {
                         </button>
                         <button
                             onClick={() => setFilterStatus('playing')}
-                            className={`px-4 py-2 rounded-lg font-medium transition ${filterStatus === 'playing'
+                            className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg font-medium text-xs sm:text-sm transition whitespace-nowrap ${filterStatus === 'playing'
                                 ? 'bg-green-600 text-white'
                                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                                 }`}
@@ -499,7 +499,7 @@ const BilliardTables = ({ serviceMode = false }: BilliardTablesProps) => {
                         </button>
                         <button
                             onClick={() => setFilterStatus('empty')}
-                            className={`px-4 py-2 rounded-lg font-medium transition ${filterStatus === 'empty'
+                            className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg font-medium text-xs sm:text-sm transition whitespace-nowrap ${filterStatus === 'empty'
                                 ? 'bg-blue-600 text-white'
                                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                                 }`}
@@ -508,7 +508,7 @@ const BilliardTables = ({ serviceMode = false }: BilliardTablesProps) => {
                         </button>
                         <button
                             onClick={() => setFilterStatus('maintenance')}
-                            className={`px-4 py-2 rounded-lg font-medium transition ${filterStatus === 'maintenance'
+                            className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg font-medium text-xs sm:text-sm transition whitespace-nowrap ${filterStatus === 'maintenance'
                                 ? 'bg-red-600 text-white'
                                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                                 }`}
@@ -520,22 +520,22 @@ const BilliardTables = ({ serviceMode = false }: BilliardTablesProps) => {
             </div>
 
             {/* Stats Cards */}
-            <div className="grid grid-cols-4 gap-4 mb-6">
-                <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                    <p className="text-sm text-gray-600 mb-1">Tổng số bàn</p>
-                    <p className="text-2xl font-bold text-gray-800">{stats.total}</p>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-6">
+                <div className="bg-gray-50 rounded-lg p-3 sm:p-4 border border-gray-200">
+                    <p className="text-xs sm:text-sm text-gray-600 mb-1">Tổng số bàn</p>
+                    <p className="text-xl sm:text-2xl font-bold text-gray-800">{stats.total}</p>
                 </div>
-                <div className="bg-green-50 rounded-lg p-4 border border-green-200">
-                    <p className="text-sm text-green-700 mb-1">Đang chơi</p>
-                    <p className="text-2xl font-bold text-green-800">{stats.playing}</p>
+                <div className="bg-green-50 rounded-lg p-3 sm:p-4 border border-green-200">
+                    <p className="text-xs sm:text-sm text-green-700 mb-1">Đang chơi</p>
+                    <p className="text-xl sm:text-2xl font-bold text-green-800">{stats.playing}</p>
                 </div>
-                <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
-                    <p className="text-sm text-blue-700 mb-1">Đang trống</p>
-                    <p className="text-2xl font-bold text-blue-800">{stats.empty}</p>
+                <div className="bg-blue-50 rounded-lg p-3 sm:p-4 border border-blue-200">
+                    <p className="text-xs sm:text-sm text-blue-700 mb-1">Đang trống</p>
+                    <p className="text-xl sm:text-2xl font-bold text-blue-800">{stats.empty}</p>
                 </div>
-                <div className="bg-red-50 rounded-lg p-4 border border-red-200">
-                    <p className="text-sm text-red-700 mb-1">Bảo trì</p>
-                    <p className="text-2xl font-bold text-red-800">{stats.maintenance}</p>
+                <div className="bg-red-50 rounded-lg p-3 sm:p-4 border border-red-200">
+                    <p className="text-xs sm:text-sm text-red-700 mb-1">Bảo trì</p>
+                    <p className="text-xl sm:text-2xl font-bold text-red-800">{stats.maintenance}</p>
                 </div>
             </div>
 
@@ -546,20 +546,20 @@ const BilliardTables = ({ serviceMode = false }: BilliardTablesProps) => {
 
             {/* Tables Grid */}
             {!loading && (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
                     {filteredTables.map((table) => {
                         const statusConfig = getStatusConfig(table.status);
                         return (
                             <div
                                 key={table.id}
-                                className={`border-2 ${statusConfig.borderColor} rounded-lg p-4 transition hover:shadow-lg cursor-pointer`}
+                                className={`border-2 ${statusConfig.borderColor} rounded-lg p-3 sm:p-4 transition hover:shadow-lg cursor-pointer`}
                             >
-                                <div className="flex items-center justify-between mb-3">
-                                    <h3 className="text-lg font-bold text-gray-800">{table.name}</h3>
+                                <div className="flex items-center justify-between mb-2 sm:mb-3">
+                                    <h3 className="text-base sm:text-lg font-bold text-gray-800">{table.name}</h3>
                                     <div className={`w-3 h-3 ${statusConfig.dotColor} rounded-full`}></div>
                                 </div>
 
-                                <div className={`${statusConfig.bgColor} ${statusConfig.textColor} px-3 py-1 rounded-md text-sm font-semibold mb-3 text-center`}>
+                                <div className={`${statusConfig.bgColor} ${statusConfig.textColor} px-2 sm:px-3 py-1 rounded-md text-xs sm:text-sm font-semibold mb-2 sm:mb-3 text-center`}>
                                     {statusConfig.label}
                                 </div>
 
@@ -634,7 +634,7 @@ const BilliardTables = ({ serviceMode = false }: BilliardTablesProps) => {
                                             {table.status === 'empty' && (
                                                 <button
                                                     onClick={() => handleStartTable(table.id)}
-                                                    className="flex-1 bg-indigo-600 text-white py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 transition"
+                                                    className="flex-1 bg-indigo-600 text-white py-2 rounded-lg text-xs sm:text-sm font-medium hover:bg-indigo-700 transition"
                                                 >
                                                     Bắt đầu
                                                 </button>
@@ -643,13 +643,13 @@ const BilliardTables = ({ serviceMode = false }: BilliardTablesProps) => {
                                                 <>
                                                     <button
                                                         onClick={() => handleEndTable(table.id)}
-                                                        className="flex-1 bg-orange-600 text-white py-2 rounded-lg text-sm font-medium hover:bg-orange-700 transition"
+                                                        className="flex-1 bg-orange-600 text-white py-2 rounded-lg text-xs sm:text-sm font-medium hover:bg-orange-700 transition"
                                                     >
                                                         Kết thúc
                                                     </button>
                                                     <button
                                                         onClick={() => handleOpenOrderModal(table)}
-                                                        className="flex-1 bg-purple-600 text-white py-2 rounded-lg text-sm font-medium hover:bg-purple-700 transition"
+                                                        className="flex-1 bg-purple-600 text-white py-2 rounded-lg text-xs sm:text-sm font-medium hover:bg-purple-700 transition"
                                                     >
                                                         🍽️ Đặt món
                                                     </button>

@@ -136,22 +136,22 @@ const OrderModal = ({ table, onClose, onOrderComplete }: OrderModalProps) => {
     }
 
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-4">
+            <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[95vh] sm:max-h-[90vh] overflow-hidden flex flex-col">
                 {/* Header */}
-                <div className="flex items-center justify-between p-6 border-b border-gray-200">
-                    <h3 className="text-2xl font-bold text-gray-800">Đặt món - {table.name}</h3>
+                <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-200">
+                    <h3 className="text-lg sm:text-2xl font-bold text-gray-800">Đặt món - {table.name}</h3>
                     <button
                         onClick={onClose}
-                        className="text-gray-400 hover:text-gray-600 text-2xl"
+                        className="text-gray-400 hover:text-gray-600 text-2xl sm:text-3xl"
                     >
                         ×
                     </button>
                 </div>
 
-                <div className="flex-1 overflow-hidden flex">
+                <div className="flex-1 overflow-hidden flex flex-col sm:flex-row">
                     {/* Menu */}
-                    <div className="w-2/3 border-r border-gray-200 overflow-y-auto p-6">
+                    <div className="w-full sm:w-2/3 border-r-0 sm:border-r border-gray-200 border-b sm:border-b-0 overflow-y-auto p-4 sm:p-6">
                         {/* Category tabs */}
                         <div className="flex gap-2 mb-4">
                             <button
@@ -175,7 +175,7 @@ const OrderModal = ({ table, onClose, onOrderComplete }: OrderModalProps) => {
                         </div>
 
                         {/* Menu items */}
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                             {filteredMenu.map((item) => (
                                 <div
                                     key={item.id}
@@ -200,8 +200,8 @@ const OrderModal = ({ table, onClose, onOrderComplete }: OrderModalProps) => {
                     </div>
 
                     {/* Selected items */}
-                    <div className="w-1/3 p-6 overflow-y-auto bg-gray-50">
-                        <h4 className="font-bold text-lg mb-4">Đơn hàng</h4>
+                    <div className="w-full sm:w-1/3 p-4 sm:p-6 overflow-y-auto bg-gray-50">
+                        <h4 className="font-bold text-base sm:text-lg mb-3 sm:mb-4">Đơn hàng</h4>
 
                         {selectedItemsList.length === 0 ? (
                             <p className="text-gray-500 text-center py-8">Chưa có món nào được chọn</p>
@@ -243,16 +243,16 @@ const OrderModal = ({ table, onClose, onOrderComplete }: OrderModalProps) => {
 
                         {/* Total */}
                         {selectedItemsList.length > 0 && (
-                            <div className="mt-6 pt-4 border-t border-gray-300">
-                                <div className="flex justify-between items-center mb-4">
-                                    <span className="text-lg font-bold">Tổng tiền:</span>
-                                    <span className="text-2xl font-bold text-indigo-600">
+                            <div className="mt-4 sm:mt-6 pt-4 border-t border-gray-300">
+                                <div className="flex justify-between items-center mb-3 sm:mb-4">
+                                    <span className="text-base sm:text-lg font-bold">Tổng tiền:</span>
+                                    <span className="text-xl sm:text-2xl font-bold text-indigo-600">
                                         {totalAmount.toLocaleString('vi-VN')}đ
                                     </span>
                                 </div>
                                 <button
                                     onClick={handleSubmitOrder}
-                                    className="w-full bg-green-600 text-white py-3 rounded-lg hover:bg-green-700 transition font-medium"
+                                    className="w-full bg-green-600 text-white py-2.5 sm:py-3 rounded-lg hover:bg-green-700 transition font-medium text-sm sm:text-base"
                                 >
                                     Xác nhận đặt món
                                 </button>

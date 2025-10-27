@@ -134,39 +134,39 @@ const MenuManagement = () => {
     }
 
     return (
-        <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl font-bold text-gray-800">Quản lý Menu</h2>
+        <div className="bg-white rounded-lg shadow p-4 sm:p-6">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-0 mb-4 sm:mb-6">
+                <h2 className="text-xl sm:text-2xl font-bold text-gray-800">Quản lý Menu</h2>
                 <button
                     onClick={() => handleOpenModal()}
-                    className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition font-medium"
+                    className="w-full sm:w-auto px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition font-medium text-sm sm:text-base"
                 >
                     + Thêm món mới
                 </button>
             </div>
 
             {/* Stats Cards */}
-            <div className="grid grid-cols-4 gap-4 mb-6">
-                <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                    <p className="text-sm text-gray-600 mb-1">Tổng số món</p>
-                    <p className="text-2xl font-bold text-gray-800">{stats.total}</p>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-4 sm:mb-6">
+                <div className="bg-gray-50 rounded-lg p-3 sm:p-4 border border-gray-200">
+                    <p className="text-xs sm:text-sm text-gray-600 mb-1">Tổng số món</p>
+                    <p className="text-xl sm:text-2xl font-bold text-gray-800">{stats.total}</p>
                 </div>
-                <div className="bg-orange-50 rounded-lg p-4 border border-orange-200">
-                    <p className="text-sm text-orange-700 mb-1">Đồ ăn</p>
-                    <p className="text-2xl font-bold text-orange-800">{stats.food}</p>
+                <div className="bg-orange-50 rounded-lg p-3 sm:p-4 border border-orange-200">
+                    <p className="text-xs sm:text-sm text-orange-700 mb-1">Đồ ăn</p>
+                    <p className="text-xl sm:text-2xl font-bold text-orange-800">{stats.food}</p>
                 </div>
-                <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
-                    <p className="text-sm text-blue-700 mb-1">Nước uống</p>
-                    <p className="text-2xl font-bold text-blue-800">{stats.drink}</p>
+                <div className="bg-blue-50 rounded-lg p-3 sm:p-4 border border-blue-200">
+                    <p className="text-xs sm:text-sm text-blue-700 mb-1">Nước uống</p>
+                    <p className="text-xl sm:text-2xl font-bold text-blue-800">{stats.drink}</p>
                 </div>
-                <div className="bg-green-50 rounded-lg p-4 border border-green-200">
-                    <p className="text-sm text-green-700 mb-1">Đang hoạt động</p>
-                    <p className="text-2xl font-bold text-green-800">{stats.active}</p>
+                <div className="bg-green-50 rounded-lg p-3 sm:p-4 border border-green-200">
+                    <p className="text-xs sm:text-sm text-green-700 mb-1">Đang hoạt động</p>
+                    <p className="text-xl sm:text-2xl font-bold text-green-800">{stats.active}</p>
                 </div>
             </div>
 
             {/* Filter buttons */}
-            <div className="flex gap-2 mb-6">
+            <div className="flex flex-wrap gap-2 mb-4 sm:mb-6">
                 <button
                     onClick={() => setFilterCategory('all')}
                     className={`px-4 py-2 rounded-lg font-medium transition ${filterCategory === 'all'

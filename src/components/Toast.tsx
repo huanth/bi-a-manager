@@ -68,7 +68,7 @@ const Toast = ({ id, message, type, duration = 3000, onClose }: ToastProps) => {
 
     return (
         <div
-            className={`${styles.bg} text-white rounded-lg shadow-lg p-4 mb-3 flex items-center gap-3 min-w-[300px] max-w-md border-l-4 ${styles.border} animate-slide-in-right`}
+            className={`${styles.bg} text-white rounded-lg shadow-lg p-3 sm:p-4 mb-3 flex items-center gap-2 sm:gap-3 w-full sm:min-w-[300px] sm:max-w-md border-l-4 ${styles.border} animate-slide-in-right`}
         >
             <div className="flex-shrink-0">{styles.icon}</div>
             <p className="flex-1 text-sm font-medium whitespace-pre-line">{message}</p>

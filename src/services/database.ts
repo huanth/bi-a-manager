@@ -24,6 +24,7 @@ export const DB_KEYS = {
 
 /**
  * Load dữ liệu từ API (GET)
+ * Fallback về localStorage nếu API không khả dụng
  */
 export const loadDatabaseFromFile = async (): Promise<Record<string, unknown>> => {
     try {
@@ -39,13 +40,26 @@ export const loadDatabaseFromFile = async (): Promise<Record<string, unknown>> =
 
         if (response.ok) {
             const data = await response.json();
+            // Lưu backup vào localStorage
+            localStorage.setItem('bi_a_manager_backup', JSON.stringify(data));
             return data;
         }
     } catch (error) {
         console.error('Error loading from API:', error);
+        // Fallback về localStorage backup
+        const backup = localStorage.getItem('bi_a_manager_backup');
+        if (backup) {
+            try {
+                const data = JSON.parse(backup);
+                console.warn('Using localStorage backup data');
+                return data;
+            } catch (e) {
+                console.error('Error parsing backup data:', e);
+            }
+        }
     }
     
-    // Return empty data nếu không load được
+    // Return empty data nếu không load được và không có backup
     return {
         tables: [],
         customers: [],
@@ -83,14 +97,19 @@ export const getDataSync = <T>(key: string, defaultValue: T): T => {
 
 /**
  * Lưu dữ liệu: Lấy toàn bộ dữ liệu hiện tại từ API, cập nhật key cần thiết, rồi POST lên API
+ * Luôn backup vào localStorage để đảm bảo không mất dữ liệu
  */
 export const saveData = async <T>(key: string, data: T): Promise<void> => {
     try {
-        // Lấy toàn bộ dữ liệu hiện tại từ API
+        // Lấy toàn bộ dữ liệu hiện tại từ API (hoặc localStorage backup)
         const currentData = await loadDatabaseFromFile();
         
         // Cập nhật key cần lưu
         currentData[key] = data;
+
+        // LUÔN LUÔN backup vào localStorage trước
+        localStorage.setItem('bi_a_manager_backup', JSON.stringify(currentData));
+        console.log(`Backed up ${key} to localStorage`);
 
         // POST toàn bộ JSON lên API
         try {
@@ -106,15 +125,18 @@ export const saveData = async <T>(key: string, data: T): Promise<void> => {
             });
 
             if (!response.ok) {
-                console.warn('Failed to sync to API');
-                throw new Error('Failed to sync to API');
+                console.warn('Failed to sync to API, but data is saved in localStorage');
+                // Không throw error vì đã backup vào localStorage
+            } else {
+                console.log(`Successfully synced ${key} to API`);
             }
         } catch (error) {
-            console.error('API sync failed:', error);
-            throw error;
+            console.error('API sync failed, but data is saved in localStorage:', error);
+            // Không throw error vì đã backup vào localStorage
         }
     } catch (error) {
         console.error(`Error saving ${key}:`, error);
+        // Vẫn throw error để component có thể xử lý
         throw error;
     }
 };
