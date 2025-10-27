@@ -35,6 +35,19 @@ Hệ thống quản lý quán bi-a hiện đại được xây dựng bằng Rea
 - Theo dõi doanh thu từ bàn và đơn hàng
 - Export dữ liệu JSON
 
+### 💳 Thanh toán & QR Code
+- Thanh toán bằng tiền mặt hoặc chuyển khoản
+- Tự động tạo QR Code thanh toán (VietQR)
+- QR Code bao gồm: số tiền, nội dung, thông tin ngân hàng
+- Hiển thị QR Code bên cạnh modal thanh toán
+- Tích hợp với 55+ ngân hàng Việt Nam
+
+### ⚙️ Cài đặt
+- Cấu hình thông tin ngân hàng để nhận thanh toán
+- Chọn ngân hàng từ danh sách đầy đủ các ngân hàng VN
+- Nhập số tài khoản và chủ tài khoản
+- Tự động tạo QR Code khi khách thanh toán
+
 ### 🔐 Phân quyền
 - **Owner (Chủ cửa hàng)**: Toàn quyền quản lý
 - **Employee (Nhân viên)**: Chỉ phục vụ bàn và quản lý đơn hàng
@@ -161,15 +174,18 @@ Backend API endpoint được cấu hình trong `vite.config.ts`:
 ### Owner (Chủ cửa hàng)
 - ✅ Phục vụ bàn bi-a
 - ✅ Quản lý bàn (CRUD)
+- ✅ Cài đặt khung giờ và giá cho từng bàn
 - ✅ Quản lý đơn hàng
 - ✅ Quản lý menu
 - ✅ Quản lý nhân viên
 - ✅ Xem thống kê doanh thu
+- ✅ Cài đặt thông tin ngân hàng
 - ✅ Export/Import dữ liệu
 
 ### Employee (Nhân viên)
 - ✅ Phục vụ bàn bi-a
 - ✅ Quản lý đơn hàng
+- ✅ Xem QR Code thanh toán khi khách chọn chuyển khoản
 
 ## 🔒 Bảo mật
 
@@ -177,6 +193,7 @@ Backend API endpoint được cấu hình trong `vite.config.ts`:
 - Phân quyền theo vai trò
 - Session management với localStorage
 - API endpoints có thể cấu hình authentication
+- Tất cả dữ liệu được lưu trữ trên backend API (không dùng localStorage)
 
 ## 📝 Ghi chú
 
@@ -184,6 +201,13 @@ Backend API endpoint được cấu hình trong `vite.config.ts`:
 - Mỗi lần thay đổi sẽ sync toàn bộ JSON lên server
 - Hỗ trợ export/import dữ liệu JSON
 - Real-time updates qua custom events
+- Tính giá tự động:
+  - Bàn không có khung giờ: tính theo giá mặc định
+  - Bàn có khung giờ: tính theo khung giờ đã cài đặt
+  - Thời gian không nằm trong khung giờ: tính theo giá mặc định
+- QR Code thanh toán:
+  - Format: `https://img.vietqr.io/image/{BANK_CODE}-{ACCOUNT_NO}-compact2.png`
+  - Tự động thêm số tiền, nội dung và tên chủ tài khoản vào QR Code
 
 ## 🤝 Đóng góp
 
@@ -195,5 +219,17 @@ Private project
 
 ---
 
-**Version**: 0.0.0  
-**Last Updated**: 2024
+**Version**: 1.0.0  
+**Last Updated**: 2025
+
+## 🆕 Changelog
+
+### Version 1.0.0 (2025)
+- ✨ Thêm tính năng QR Code thanh toán tự động
+- ✨ Cải thiện tính giá theo khung giờ
+- ✨ Thêm cài đặt thông tin ngân hàng
+- 🎨 Cải thiện UI/UX modal thanh toán
+- 🐛 Sửa lỗi tính giá khi chơi qua nhiều khung giờ
+- 🧹 Loại bỏ console.log trong production
+- 🚀 Optimize build size
+- 📱 Responsive design cho QR Code thanh toán
