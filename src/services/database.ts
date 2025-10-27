@@ -43,7 +43,7 @@ export const loadDatabaseFromFile = async (): Promise<Record<string, unknown>> =
             return data;
         }
     } catch (error) {
-        console.error('Error loading from API:', error);
+        // Error loading from API
     }
     
     // Return empty data nếu không load được
@@ -70,7 +70,7 @@ export const getData = async <T>(key: string, defaultValue: T): Promise<T> => {
             return value;
         }
     } catch (error) {
-        console.error(`Error reading ${key}:`, error);
+        // Error reading data
     }
     return defaultValue;
 };
@@ -108,10 +108,7 @@ export const saveData = async <T>(key: string, data: T): Promise<void> => {
         if (!response.ok) {
             throw new Error('Failed to sync to API');
         }
-        
-        console.log(`Successfully synced ${key} to API`);
     } catch (error) {
-        console.error(`Error saving ${key}:`, error);
         throw error;
     }
 };
@@ -135,7 +132,6 @@ export const deleteData = async (key: string): Promise<void> => {
             body: JSON.stringify(currentData),
         });
     } catch (error) {
-        console.error(`Error deleting ${key}:`, error);
         throw error;
     }
 };
@@ -161,7 +157,6 @@ export const clearAllData = async (): Promise<void> => {
             body: JSON.stringify(emptyData),
         });
     } catch (error) {
-        console.error('Error clearing all data:', error);
         throw error;
     }
 };
@@ -184,7 +179,6 @@ export const exportToJSON = async (): Promise<void> => {
         document.body.removeChild(link);
         URL.revokeObjectURL(url);
     } catch (error) {
-        console.error('Error exporting JSON:', error);
         throw error;
     }
 };
@@ -217,7 +211,6 @@ export const importFromJSON = (file: File): Promise<void> => {
                         throw new Error('Failed to sync import to API');
                     }
                 } catch (error) {
-                    console.error('API sync failed during import:', error);
                     reject(error);
                     return;
                 }

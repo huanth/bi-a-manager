@@ -27,7 +27,6 @@ const MenuManagement = () => {
                 const data = await getData<MenuItem[]>(DB_KEYS.MENU, initialMenu);
                 setMenu(data);
             } catch (error) {
-                console.error('Error loading menu:', error);
                 setMenu(initialMenu);
             } finally {
                 setLoading(false);

@@ -52,7 +52,7 @@ const TableManagement = () => {
                     saveData(DB_KEYS.TABLES, normalizedData);
                 }
             } catch (error) {
-                console.error('Error loading data:', error);
+                // Error loading data
             } finally {
                 setLoading(false);
             }

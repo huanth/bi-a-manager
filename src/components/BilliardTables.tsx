@@ -101,7 +101,7 @@ const BilliardTables = ({ serviceMode = false }: BilliardTablesProps) => {
 
                 setTables(updatedData);
             } catch (error) {
-                console.error('Error loading data:', error);
+                // Error loading data
             } finally {
                 setLoading(false);
             }
@@ -127,7 +127,7 @@ const BilliardTables = ({ serviceMode = false }: BilliardTablesProps) => {
                     }
                 }
             } catch (error) {
-                console.error('Error loading bank settings:', error);
+                // Error loading bank settings
             }
         };
         loadBankSettings();
@@ -258,7 +258,6 @@ const BilliardTables = ({ serviceMode = false }: BilliardTablesProps) => {
             setOrderTotal(totalOrderAmount);
             setOrderDetails(tableOrders);
         } catch (error) {
-            console.error('Error loading orders:', error);
             setOrderTotal(0);
             setOrderDetails([]);
         }
@@ -285,7 +284,6 @@ const BilliardTables = ({ serviceMode = false }: BilliardTablesProps) => {
             try {
                 await saveData(DB_KEYS.TABLES, updatedTables);
             } catch (error) {
-                console.error('Error saving table status:', error);
                 modal.showError('Có lỗi xảy ra khi lưu trạng thái bàn');
                 return;
             }
@@ -351,7 +349,7 @@ const BilliardTables = ({ serviceMode = false }: BilliardTablesProps) => {
                 });
                 await saveData(DB_KEYS.REVENUE, filteredRevenue);
             } catch (error) {
-                console.error('Error saving revenue transaction:', error);
+                // Error saving revenue transaction
             }
 
             setShowPaymentModal(false);

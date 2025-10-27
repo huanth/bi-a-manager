@@ -24,7 +24,7 @@ const OrderManagement = () => {
                 );
                 setOrders(sortedData);
             } catch (error) {
-                console.error('Error loading orders:', error);
+                // Error loading orders
             } finally {
                 setLoading(false);
             }
@@ -109,11 +109,10 @@ const OrderManagement = () => {
                         window.dispatchEvent(new CustomEvent('revenueUpdated'));
                     }
                 } catch (error) {
-                    console.error('Error saving revenue transaction:', error);
+                    // Error saving revenue transaction
                 }
             }
         } catch (error) {
-            console.error('Error updating order status:', error);
             modal.showError('Có lỗi xảy ra khi cập nhật trạng thái đơn hàng');
         }
     };

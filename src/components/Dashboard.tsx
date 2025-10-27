@@ -23,7 +23,7 @@ const Dashboard = () => {
             const pendingCount = orders.filter(o => o.status === 'pending').length;
             setPendingOrdersCount(pendingCount);
         } catch (error) {
-            console.error('Error loading data:', error);
+            // Error loading data
         }
     };
 

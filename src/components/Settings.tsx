@@ -44,11 +44,9 @@ const Settings = () => {
                 if (data.code === '00' && data.data) {
                     setBanks(data.data);
                 } else {
-                    console.error('Error loading banks:', data.desc);
                     toast.showError('Không thể tải danh sách ngân hàng');
                 }
             } catch (error) {
-                console.error('Error loading banks:', error);
                 toast.showError('Lỗi khi tải danh sách ngân hàng');
             } finally {
                 setLoadingBanks(false);
@@ -65,7 +63,6 @@ const Settings = () => {
                 const data = await getData<SettingsType>(DB_KEYS.SETTINGS, DEFAULT_SETTINGS);
                 setSettings(data);
             } catch (error) {
-                console.error('Error loading settings:', error);
                 toast.showError('Lỗi khi tải cài đặt');
             } finally {
                 setLoading(false);
@@ -90,7 +87,6 @@ const Settings = () => {
             await saveData(DB_KEYS.SETTINGS, settings);
             toast.showSuccess('Đã lưu cài đặt thành công!');
         } catch (error) {
-            console.error('Error saving settings:', error);
             toast.showError('Lỗi khi lưu cài đặt');
         } finally {
             setSaving(false);

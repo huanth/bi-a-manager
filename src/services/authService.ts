@@ -69,7 +69,6 @@ export const loginAPI = async (username: string, password: string): Promise<Logi
 
         // Validate role
         if (!user.role || (user.role !== 'owner' && user.role !== 'employee')) {
-            console.warn(`Invalid role for user ${user.username}: ${user.role}`);
             return {
                 success: false,
                 message: 'Tài khoản không hợp lệ',
@@ -82,7 +81,6 @@ export const loginAPI = async (username: string, password: string): Promise<Logi
             role: user.role,
         };
     } catch (error) {
-        console.error('Error loading users from database:', error);
         return {
             success: false,
             message: 'Không thể kết nối đến cơ sở dữ liệu. Vui lòng thử lại sau.',

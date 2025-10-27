@@ -21,7 +21,7 @@ const RevenueStats = () => {
                 const ordersData = await getData<Order[]>(DB_KEYS.ORDERS, []);
                 setOrders(ordersData);
             } catch (error) {
-                console.error('Error loading revenue data:', error);
+                // Error loading revenue data
             } finally {
                 setLoading(false);
             }

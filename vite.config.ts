@@ -13,13 +13,13 @@ export default defineConfig({
         rewrite: (path) => path.replace(/^\/api/, ''),
         configure: (proxy) => {
           proxy.on('error', (err) => {
-            console.log('proxy error', err);
+            // Proxy error handling
           });
           proxy.on('proxyReq', (proxyReq, req) => {
-            console.log('Sending Request to the Target:', req.method, req.url);
+            // Proxy request
           });
           proxy.on('proxyRes', (proxyRes, req) => {
-            console.log('Received Response from the Target:', proxyRes.statusCode, req.url);
+            // Proxy response
           });
         },
       },

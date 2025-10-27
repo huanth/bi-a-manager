@@ -23,9 +23,8 @@ export const initializeDatabase = async (): Promise<void> => {
     try {
         // Khởi tạo dữ liệu mặc định
         await saveData(DB_KEYS.TABLES, initialTables);
-        console.log('Database initialized with default data');
     } catch (error) {
-        console.error('Error initializing database:', error);
+        // Error initializing database
     }
 };
 

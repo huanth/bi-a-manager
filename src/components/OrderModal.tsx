@@ -27,7 +27,6 @@ const OrderModal = ({ table, onClose, onOrderComplete }: OrderModalProps) => {
                 const menuData = await getData<MenuItem[]>(DB_KEYS.MENU, initialMenu);
                 setMenu(menuData.filter(item => item.isActive !== false));
             } catch (error) {
-                console.error('Error loading menu:', error);
                 setMenu(initialMenu.filter(item => item.isActive !== false));
             } finally {
                 setLoading(false);
@@ -115,7 +114,6 @@ const OrderModal = ({ table, onClose, onOrderComplete }: OrderModalProps) => {
                 onClose();
             }, 1000);
         } catch (error) {
-            console.error('Error creating order:', error);
             modal.showError('Có lỗi xảy ra khi đặt món');
         }
     };

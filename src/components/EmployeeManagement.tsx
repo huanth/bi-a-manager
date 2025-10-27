@@ -28,7 +28,7 @@ const EmployeeManagement = () => {
                 const data = await getData<Employee[]>(DB_KEYS.EMPLOYEES, []);
                 setEmployees(data);
             } catch (error) {
-                console.error('Error loading employees:', error);
+                // Error loading employees
             } finally {
                 setLoading(false);
             }
@@ -156,7 +156,6 @@ const EmployeeManagement = () => {
 
             handleCloseModal();
         } catch (error) {
-            console.error('Error saving employee:', error);
             modal.showError('Có lỗi xảy ra khi lưu thông tin nhân viên');
         }
     };
@@ -177,7 +176,6 @@ const EmployeeManagement = () => {
                     const updatedUsers = users.filter(user => user.username !== employee.username);
                     await saveData(DB_KEYS.USERS, updatedUsers);
                 } catch (error) {
-                    console.error('Error deleting user account:', error);
                     modal.showError('Có lỗi khi xóa tài khoản đăng nhập. Quá trình xóa nhân viên đã bị hủy.');
                     return;
                 }
@@ -210,7 +208,6 @@ const EmployeeManagement = () => {
             setJsonData(JSON.stringify(dataToShow, null, 2));
             setShowJsonData(true);
         } catch (error) {
-            console.error('Error loading JSON data:', error);
             modal.showError('Lỗi khi tải dữ liệu JSON');
         }
     };
