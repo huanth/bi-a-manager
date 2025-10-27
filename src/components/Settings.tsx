@@ -72,7 +72,8 @@ const Settings = () => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []); // Chỉ chạy 1 lần khi component mount
 
-    if (loading || loadingBanks) {
+    // Hiển thị loading chỉ khi đang tải settings, không block giao diện khi đang tải banks
+    if (loading) {
         return (
             <div className="bg-white rounded-lg shadow p-6">
                 <LoadingSpinner text="Đang tải cài đặt..." />
@@ -149,18 +150,43 @@ const Settings = () => {
                             <label htmlFor="bankName" className="block text-sm font-medium text-gray-700 mb-2">
                                 Tên ngân hàng
                             </label>
-                            <Select<BankOption>
-                                id="bankName"
-                                options={bankOptions}
-                                value={selectedBank || null}
-                                onChange={handleBankChange}
-                                placeholder="-- Chọn ngân hàng --"
-                                isSearchable={true}
-                                styles={customStyles}
-                                className="react-select-container"
-                                classNamePrefix="react-select"
-                                noOptionsMessage={() => 'Không tìm thấy ngân hàng'}
-                            />
+                            {loadingBanks ? (
+                                <div className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 flex items-center">
+                                    <span className="text-gray-500">Đang tải danh sách ngân hàng...</span>
+                                </div>
+                            ) : bankOptions.length === 0 ? (
+                                <div className="space-y-2">
+                                    <input
+                                        id="bankName"
+                                        type="text"
+                                        value={settings.bankAccount.bankName}
+                                        onChange={(e) =>
+                                            setSettings({
+                                                ...settings,
+                                                bankAccount: { ...settings.bankAccount, bankName: e.target.value },
+                                            })
+                                        }
+                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"
+                                        placeholder="Nhập tên ngân hàng"
+                                    />
+                                    <p className="text-sm text-amber-600">
+                                        Không thể tải danh sách ngân hàng. Vui lòng nhập tên ngân hàng thủ công.
+                                    </p>
+                                </div>
+                            ) : (
+                                <Select<BankOption>
+                                    id="bankName"
+                                    options={bankOptions}
+                                    value={selectedBank || null}
+                                    onChange={handleBankChange}
+                                    placeholder="-- Chọn ngân hàng --"
+                                    isSearchable={true}
+                                    styles={customStyles}
+                                    className="react-select-container"
+                                    classNamePrefix="react-select"
+                                    noOptionsMessage={() => 'Không tìm thấy ngân hàng'}
+                                />
+                            )}
                         </div>
                         <div>
                             <label htmlFor="accountNumber" className="block text-sm font-medium text-gray-700 mb-2">
