@@ -629,6 +629,8 @@ const BilliardTables = ({ serviceMode = false }: BilliardTablesProps) => {
                                     <div className="text-center py-2">
                                         <p className="text-sm text-gray-600 mb-2">Sẵn sàng phục vụ</p>
                                         {(() => {
+                                            // Sử dụng currentTime để trigger re-render khi thời gian thay đổi
+                                            // Giá sẽ tự động cập nhật khi currentTime thay đổi
                                             const currentPrice = getCurrentPrice(table);
                                             const timeLabel = getCurrentTimeLabel(table);
                                             return (
@@ -657,6 +659,8 @@ const BilliardTables = ({ serviceMode = false }: BilliardTablesProps) => {
                                 {table.status !== 'empty' && (
                                     <div className="mt-3 pt-3 border-t border-gray-200">
                                         {(() => {
+                                            // Sử dụng currentTime để trigger re-render khi thời gian thay đổi
+                                            // Giá sẽ tự động cập nhật khi currentTime thay đổi
                                             const currentPrice = getCurrentPrice(table);
                                             const timeLabel = getCurrentTimeLabel(table);
                                             return (
