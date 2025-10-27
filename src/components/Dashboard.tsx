@@ -63,10 +63,13 @@ const Dashboard = () => {
             <header className="bg-white shadow-sm">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-4">
                     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-                        <div className="flex items-center gap-3">
+                        <button
+                            onClick={() => setActiveTab('service')}
+                            className="flex items-center gap-3 hover:opacity-80 transition-opacity"
+                        >
                             <img src="/logo.svg" alt="BI A Manager Logo" className="w-10 h-10 sm:w-12 sm:h-12" />
                             <h1 className="text-xl sm:text-2xl font-bold text-gray-800">BI A Manager</h1>
-                        </div>
+                        </button>
                         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4 w-full sm:w-auto">
                             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3">
                                 <span className="text-sm sm:text-base text-gray-700">
