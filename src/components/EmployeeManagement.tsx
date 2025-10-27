@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Employee } from '../types/employee';
 import { UserAccount } from '../types/user';
-import { getData, saveData, DB_KEYS, loadDatabaseFromFile, exportToJSON } from '../services/database';
+import { getData, saveData, DB_KEYS, loadDatabaseFromFile } from '../services/database';
 import Modal from './Modal';
 import { useModal } from '../hooks/useModal';
 
@@ -227,6 +227,12 @@ const EmployeeManagement = () => {
                         className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition font-medium"
                     >
                         + Thêm nhân viên
+                    </button>
+                    <button
+                        onClick={handleShowJsonData}
+                        className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition font-medium"
+                    >
+                        📄 Xem JSON
                     </button>
                 </div>
             </div>

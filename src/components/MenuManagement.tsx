@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { MenuItem } from '../types/order';
 import { getData, saveData, DB_KEYS } from '../services/database';
 import { initialMenu } from '../data/menuData';
-import LoadingSpinner from './LoadingSpinner';
 import Modal from './Modal';
 import { useModal } from '../hooks/useModal';
 

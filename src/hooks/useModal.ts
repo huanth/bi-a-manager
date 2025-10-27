@@ -1,6 +1,6 @@
 import { useState, useCallback, useContext } from 'react';
 import { ModalType } from '../components/Modal';
-import { useToastContext, ToastContext } from '../contexts/ToastContext';
+import { ToastContext } from '../contexts/ToastContext';
 
 interface ModalState {
     isOpen: boolean;
@@ -18,7 +18,6 @@ export const useModal = () => {
     });
 
     // Get toast context - it returns no-op if not available
-    const toast = useToastContext();
     const context = useContext(ToastContext);
 
     const showAlert = useCallback((message: string, type: ModalType = 'alert', title?: string) => {

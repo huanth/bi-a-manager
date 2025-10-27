@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { BilliardTable, TableStatus } from '../types/table';
-import { getData, getDataSync, saveData, DB_KEYS, exportToJSON, importFromJSON, loadDatabaseFromFile } from '../services/database';
+import { getData, saveData, DB_KEYS, exportToJSON, importFromJSON, loadDatabaseFromFile } from '../services/database';
 import { initialTables } from '../data/initialData';
 import { useAuth } from '../contexts/AuthContext';
 import { getCurrentPrice, getCurrentTimeLabel, calculateTotalPrice } from '../utils/pricing';

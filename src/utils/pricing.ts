@@ -1,4 +1,4 @@
-import { BilliardTable, TimePrice } from '../types/table';
+import { BilliardTable } from '../types/table';
 
 /**
  * Tính giá hiện tại của bàn dựa trên thời gian

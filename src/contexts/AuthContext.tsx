@@ -26,7 +26,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         }
     }, []);
 
-    const login = (username: string, password: string, role: UserRole) => {
+    const login = (username: string, _password: string, role: UserRole) => {
         const newUser: User = { username, role };
         setUser(newUser);
         localStorage.setItem('user', JSON.stringify(newUser));

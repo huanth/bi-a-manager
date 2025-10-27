@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { BilliardTable, TableStatus, TimePrice } from '../types/table';
-import { getData, getDataSync, saveData, DB_KEYS, loadDatabaseFromFile } from '../services/database';
+import { getData, saveData, DB_KEYS, loadDatabaseFromFile } from '../services/database';
 import { initialTables } from '../data/initialData';
 import LoadingSpinner from './LoadingSpinner';
 import Modal from './Modal';

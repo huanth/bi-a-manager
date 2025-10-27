@@ -205,7 +205,7 @@ const OrderModal = ({ table, onClose, onOrderComplete }: OrderModalProps) => {
                             <p className="text-gray-500 text-center py-8">Chưa có món nào được chọn</p>
                         ) : (
                             <div className="space-y-3">
-                                {selectedItemsList.map(({ menuItem, quantity, note }) => (
+                                {selectedItemsList.map(({ menuItem, quantity }) => (
                                     <div key={menuItem.id} className="bg-white rounded-lg p-3 border border-gray-200">
                                         <div className="flex justify-between items-start mb-2">
                                             <span className="font-semibold text-sm">{menuItem.name}</span>
