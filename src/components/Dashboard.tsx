@@ -7,6 +7,7 @@ import OrderManagement from './OrderManagement';
 import MenuManagement from './MenuManagement';
 import RevenueStats from './RevenueStats';
 import Settings from './Settings';
+import Modal from './Modal';
 import { getData, DB_KEYS } from '../services/database';
 import { Order } from '../types/order';
 
@@ -14,6 +15,8 @@ const Dashboard = () => {
     const { user, logout, hasRole } = useAuth();
     const [activeTab, setActiveTab] = useState<'service' | 'tables' | 'orders' | 'menu' | 'revenue' | 'employees' | 'settings'>('service');
     const [pendingOrdersCount, setPendingOrdersCount] = useState(0);
+    const [showTermsModal, setShowTermsModal] = useState(false);
+    const [showAboutModal, setShowAboutModal] = useState(false);
 
     // Đếm đơn hàng chưa hoàn thành
     const loadData = async () => {
@@ -225,6 +228,115 @@ const Dashboard = () => {
                     )
                 )}
             </main>
+
+            {/* Footer */}
+            <footer className="bg-white border-t border-gray-200 mt-12">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+                    <div className="flex flex-col sm:flex-row justify-between items-center gap-2 text-xs sm:text-sm text-gray-600">
+                        <div className="flex items-center gap-1">
+                            <span>© {new Date().getFullYear()} BI A Manager. All rights reserved.</span>
+                        </div>
+                        <div className="flex items-center gap-4">
+                            <button
+                                onClick={() => setShowTermsModal(true)}
+                                className="hover:text-indigo-600 transition-colors underline"
+                            >
+                                Điều khoản
+                            </button>
+                            <span className="text-gray-300">|</span>
+                            <button
+                                onClick={() => setShowAboutModal(true)}
+                                className="hover:text-indigo-600 transition-colors underline"
+                            >
+                                Về chúng tôi
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </footer>
+
+            {/* Terms Modal */}
+            <Modal
+                isOpen={showTermsModal}
+                onClose={() => setShowTermsModal(false)}
+                title="Điều khoản sử dụng"
+                message=""
+                type="info"
+            >
+                <div className="text-left space-y-4 max-h-96 overflow-y-auto px-2">
+                    <div>
+                        <h3 className="font-semibold text-gray-800 mb-2">1. Chấp nhận điều khoản</h3>
+                        <p className="text-sm text-gray-600 mb-4">
+                            Bằng việc sử dụng hệ thống BI A Manager, bạn đồng ý tuân thủ các điều khoản và điều kiện sử dụng được nêu trong tài liệu này.
+                        </p>
+                    </div>
+                    <div>
+                        <h3 className="font-semibold text-gray-800 mb-2">2. Quyền sử dụng</h3>
+                        <p className="text-sm text-gray-600 mb-4">
+                            Bạn được cấp quyền sử dụng hệ thống cho mục đích quản lý quán bi-a của mình. Không được phép sao chép, phân phối hoặc bán hệ thống này cho bên thứ ba.
+                        </p>
+                    </div>
+                    <div>
+                        <h3 className="font-semibold text-gray-800 mb-2">3. Bảo mật dữ liệu</h3>
+                        <p className="text-sm text-gray-600 mb-4">
+                            Chúng tôi cam kết bảo vệ thông tin của bạn. Tất cả dữ liệu được mã hóa và lưu trữ an toàn trên server.
+                        </p>
+                    </div>
+                    <div>
+                        <h3 className="font-semibold text-gray-800 mb-2">4. Trách nhiệm</h3>
+                        <p className="text-sm text-gray-600 mb-4">
+                            Người dùng chịu trách nhiệm về tính chính xác của dữ liệu nhập vào hệ thống và việc sử dụng hệ thống đúng mục đích.
+                        </p>
+                    </div>
+                    <div>
+                        <h3 className="font-semibold text-gray-800 mb-2">5. Thay đổi điều khoản</h3>
+                        <p className="text-sm text-gray-600">
+                            Chúng tôi có quyền thay đổi các điều khoản này bất cứ lúc nào. Việc tiếp tục sử dụng hệ thống sau khi có thay đổi được xem như bạn đã chấp nhận các điều khoản mới.
+                        </p>
+                    </div>
+                </div>
+            </Modal>
+
+            {/* About Modal */}
+            <Modal
+                isOpen={showAboutModal}
+                onClose={() => setShowAboutModal(false)}
+                title="Về chúng tôi"
+                message=""
+                type="info"
+            >
+                <div className="text-left space-y-4 max-h-96 overflow-y-auto px-2">
+                    <div>
+                        <h3 className="font-semibold text-gray-800 mb-2">BI A Manager</h3>
+                        <p className="text-sm text-gray-600 mb-4">
+                            Hệ thống quản lý quán bi-a hiện đại được phát triển để hỗ trợ quản lý bàn bi-a, đơn hàng, menu, nhân viên và theo dõi doanh thu một cách hiệu quả.
+                        </p>
+                    </div>
+                    <div>
+                        <h3 className="font-semibold text-gray-800 mb-2">Tính năng chính</h3>
+                        <ul className="text-sm text-gray-600 space-y-2 list-disc list-inside mb-4">
+                            <li>Quản lý bàn bi-a với nhiều trạng thái</li>
+                            <li>Tính giá tự động theo khung giờ</li>
+                            <li>Quản lý đơn hàng và menu</li>
+                            <li>Thống kê doanh thu chi tiết</li>
+                            <li>Thanh toán qua QR Code</li>
+                            <li>Phân quyền Owner/Employee</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h3 className="font-semibold text-gray-800 mb-2">Công nghệ</h3>
+                        <p className="text-sm text-gray-600 mb-4">
+                            Được xây dựng bằng React + TypeScript, sử dụng Tailwind CSS cho giao diện đẹp mắt và responsive trên mọi thiết bị.
+                        </p>
+                    </div>
+                    <div>
+                        <h3 className="font-semibold text-gray-800 mb-2">Phiên bản</h3>
+                        <p className="text-sm text-gray-600">
+                            Version 1.0.0 - 2025
+                        </p>
+                    </div>
+                </div>
+            </Modal>
         </div>
     );
 };
