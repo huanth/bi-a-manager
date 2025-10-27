@@ -103,6 +103,9 @@ const OrderModal = ({ table, onClose, onOrderComplete }: OrderModalProps) => {
             // Lưu order
             await saveData(DB_KEYS.ORDERS, [...orders, newOrder]);
 
+            // Thông báo Dashboard cập nhật
+            window.dispatchEvent(new CustomEvent('ordersUpdated'));
+
             alert('Đặt món thành công!');
             onOrderComplete();
             onClose();
@@ -149,8 +152,8 @@ const OrderModal = ({ table, onClose, onOrderComplete }: OrderModalProps) => {
                             <button
                                 onClick={() => setActiveCategory('food')}
                                 className={`px-4 py-2 rounded-lg font-medium transition ${activeCategory === 'food'
-                                        ? 'bg-indigo-600 text-white'
-                                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                    ? 'bg-indigo-600 text-white'
+                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                                     }`}
                             >
                                 🍕 Đồ ăn
@@ -158,8 +161,8 @@ const OrderModal = ({ table, onClose, onOrderComplete }: OrderModalProps) => {
                             <button
                                 onClick={() => setActiveCategory('drink')}
                                 className={`px-4 py-2 rounded-lg font-medium transition ${activeCategory === 'drink'
-                                        ? 'bg-indigo-600 text-white'
-                                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                    ? 'bg-indigo-600 text-white'
+                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                                     }`}
                             >
                                 🥤 Nước uống

@@ -90,6 +90,9 @@ const OrderManagement = () => {
             setOrders(updatedOrders);
             await saveData(DB_KEYS.ORDERS, updatedOrders);
 
+            // Thông báo Dashboard cập nhật
+            window.dispatchEvent(new CustomEvent('ordersUpdated'));
+
             // Nếu đơn hàng được đánh dấu là completed, lưu vào revenue
             if (newStatus === 'completed' && order.status !== 'completed') {
                 try {
@@ -114,6 +117,9 @@ const OrderManagement = () => {
                         };
 
                         await saveData(DB_KEYS.REVENUE, [...revenueTransactions, newTransaction]);
+
+                        // Thông báo Dashboard cập nhật doanh thu
+                        window.dispatchEvent(new CustomEvent('revenueUpdated'));
                     }
                 } catch (error) {
                     console.error('Error saving revenue transaction:', error);

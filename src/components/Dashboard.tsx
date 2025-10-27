@@ -14,29 +14,53 @@ const Dashboard = () => {
     const { user, logout, hasRole } = useAuth();
     const [activeTab, setActiveTab] = useState<'service' | 'tables' | 'orders' | 'menu' | 'revenue' | 'employees'>('service');
     const [totalRevenue, setTotalRevenue] = useState(0);
+    const [pendingOrdersCount, setPendingOrdersCount] = useState(0);
 
-    // Load tổng doanh thu
+    // Load tổng doanh thu và đếm đơn hàng chưa hoàn thành
+    const loadData = async () => {
+        try {
+            const transactions = await getData<RevenueTransaction[]>(DB_KEYS.REVENUE, []);
+            const orders = await getData<Order[]>(DB_KEYS.ORDERS, []);
+
+            const transactionsTotal = transactions.reduce((sum, t) => sum + t.amount, 0);
+            const ordersTotal = orders
+                .filter(o => o.status === 'completed')
+                .reduce((sum, o) => sum + o.totalAmount, 0);
+
+            setTotalRevenue(transactionsTotal + ordersTotal);
+
+            // Đếm số đơn hàng chưa hoàn thành (pending, preparing, ready)
+            const pendingCount = orders.filter(o =>
+                o.status !== 'completed' && o.status !== 'cancelled'
+            ).length;
+            setPendingOrdersCount(pendingCount);
+        } catch (error) {
+            console.error('Error loading data:', error);
+        }
+    };
+
     useEffect(() => {
-        const loadRevenue = async () => {
-            try {
-                const transactions = await getData<RevenueTransaction[]>(DB_KEYS.REVENUE, []);
-                const orders = await getData<Order[]>(DB_KEYS.ORDERS, []);
+        // Load dữ liệu lần đầu
+        loadData();
 
-                const transactionsTotal = transactions.reduce((sum, t) => sum + t.amount, 0);
-                const ordersTotal = orders
-                    .filter(o => o.status === 'completed')
-                    .reduce((sum, o) => sum + o.totalAmount, 0);
+        // Reload mỗi 30 giây để cập nhật doanh thu và số đơn hàng
+        const interval = setInterval(loadData, 30000);
 
-                setTotalRevenue(transactionsTotal + ordersTotal);
-            } catch (error) {
-                console.error('Error loading revenue:', error);
-            }
+        // Lắng nghe custom event để refresh khi có action API
+        const handleDataChange = () => {
+            loadData();
         };
-        loadRevenue();
 
-        // Reload mỗi 30 giây để cập nhật doanh thu
-        const interval = setInterval(loadRevenue, 30000);
-        return () => clearInterval(interval);
+        window.addEventListener('ordersUpdated', handleDataChange);
+        window.addEventListener('revenueUpdated', handleDataChange);
+        window.addEventListener('tablePaymentCompleted', handleDataChange);
+
+        return () => {
+            clearInterval(interval);
+            window.removeEventListener('ordersUpdated', handleDataChange);
+            window.removeEventListener('revenueUpdated', handleDataChange);
+            window.removeEventListener('tablePaymentCompleted', handleDataChange);
+        };
     }, []);
 
     const handleLogout = () => {
@@ -124,12 +148,17 @@ const Dashboard = () => {
                                 </button>
                                 <button
                                     onClick={() => setActiveTab('orders')}
-                                    className={`px-6 py-3 font-medium text-sm border-b-2 transition ${activeTab === 'orders'
+                                    className={`px-6 py-3 font-medium text-sm border-b-2 transition relative ${activeTab === 'orders'
                                         ? 'border-indigo-500 text-indigo-600'
                                         : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                                         }`}
                                 >
                                     Quản lý Đơn hàng
+                                    {pendingOrdersCount > 0 && (
+                                        <span className="ml-2 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white bg-red-600 rounded-full">
+                                            {pendingOrdersCount}
+                                        </span>
+                                    )}
                                 </button>
                                 <button
                                     onClick={() => setActiveTab('menu')}
@@ -179,12 +208,17 @@ const Dashboard = () => {
                                 </button>
                                 <button
                                     onClick={() => setActiveTab('orders')}
-                                    className={`px-6 py-3 font-medium text-sm border-b-2 transition ${activeTab === 'orders'
+                                    className={`px-6 py-3 font-medium text-sm border-b-2 transition relative ${activeTab === 'orders'
                                         ? 'border-indigo-500 text-indigo-600'
                                         : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                                         }`}
                                 >
                                     Quản lý Đơn hàng
+                                    {pendingOrdersCount > 0 && (
+                                        <span className="ml-2 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white bg-red-600 rounded-full">
+                                            {pendingOrdersCount}
+                                        </span>
+                                    )}
                                 </button>
                             </nav>
                         </div>

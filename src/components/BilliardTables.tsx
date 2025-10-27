@@ -172,13 +172,38 @@ const BilliardTables = ({ serviceMode = false }: BilliardTablesProps) => {
         const now = new Date();
         const priceDetails = calculateTotalPrice(table, table.startTime, now);
 
-        // Load và tính tổng tiền đơn hàng của bàn này
+        // Load và tính tổng tiền đơn hàng của bàn này (chỉ trong phiên chơi hiện tại)
         try {
             const orders = await getData<Order[]>(DB_KEYS.ORDERS, []);
-            const tableOrders = orders.filter(order =>
-                order.tableId === tableId &&
-                order.status !== 'cancelled'
-            );
+            const now = new Date();
+
+            // Tính thời gian bắt đầu của phiên chơi (từ startTime)
+            const [startHour, startMin] = table.startTime.split(':').map(Number);
+            const startDate = new Date();
+            startDate.setHours(startHour, startMin, 0, 0);
+
+            // Xử lý trường hợp chơi qua ngày: nếu startTime (VD: 23:00) > giờ hiện tại (VD: 01:00)
+            // thì có nghĩa là bắt đầu từ ngày hôm qua
+            const currentHour = now.getHours();
+            const currentMin = now.getMinutes();
+            const currentTimeInMinutes = currentHour * 60 + currentMin;
+            const startTimeInMinutes = startHour * 60 + startMin;
+
+            // Nếu thời gian bắt đầu > thời gian hiện tại (ví dụ: 23:00 > 01:00), nghĩa là đã qua ngày
+            if (startTimeInMinutes > currentTimeInMinutes) {
+                startDate.setDate(startDate.getDate() - 1);
+            }
+
+            // Lọc các đơn hàng trong phiên chơi: cùng bàn, không bị hủy, và được tạo trong khoảng thời gian phiên chơi
+            const tableOrders = orders.filter(order => {
+                if (order.tableId !== tableId || order.status === 'cancelled') {
+                    return false;
+                }
+
+                // Kiểm tra thời gian tạo đơn hàng
+                const orderCreatedAt = new Date(order.createdAt);
+                return orderCreatedAt >= startDate && orderCreatedAt <= now;
+            });
 
             const totalOrderAmount = tableOrders.reduce((sum, order) => sum + order.totalAmount, 0);
 
@@ -235,11 +260,13 @@ const BilliardTables = ({ serviceMode = false }: BilliardTablesProps) => {
 
                 await saveData(DB_KEYS.REVENUE, [...revenueTransactions, newTransaction]);
 
-                // Đánh dấu các đơn hàng đã được thanh toán (đổi status thành completed nếu chưa)
-                // và đảm bảo không tạo revenue transaction trùng cho các đơn hàng này
+                // Đánh dấu các đơn hàng trong phiên chơi hiện tại đã được thanh toán
+                // Chỉ đánh dấu những đơn hàng có trong orderDetails (đã được lọc theo thời gian)
                 const orders = await getData<Order[]>(DB_KEYS.ORDERS, []);
+                const orderIdsInSession = new Set(orderDetails.map(o => o.id));
                 const updatedOrders = orders.map(order => {
-                    if (order.tableId === paymentTable.id && order.status !== 'completed' && order.status !== 'cancelled') {
+                    // Chỉ đánh dấu completed nếu đơn hàng thuộc phiên chơi hiện tại
+                    if (orderIdsInSession.has(order.id) && order.status !== 'completed' && order.status !== 'cancelled') {
                         return {
                             ...order,
                             status: 'completed' as const,
@@ -250,14 +277,24 @@ const BilliardTables = ({ serviceMode = false }: BilliardTablesProps) => {
                 });
                 await saveData(DB_KEYS.ORDERS, updatedOrders);
 
-                // Xóa các revenue transaction trùng của đơn hàng (nếu có) vì đã tính vào bàn
+                // Thông báo Dashboard cập nhật đơn hàng và doanh thu
+                window.dispatchEvent(new CustomEvent('ordersUpdated'));
+                window.dispatchEvent(new CustomEvent('revenueUpdated'));
+                window.dispatchEvent(new CustomEvent('tablePaymentCompleted'));
+
+                // Xóa các revenue transaction trùng của đơn hàng trong phiên chơi hiện tại (nếu có)
+                // Vì đã tính vào tổng tiền bàn, không cần tính riêng nữa
                 const finalRevenueTransactions = await getData<RevenueTransaction[]>(DB_KEYS.REVENUE, []);
                 const filteredRevenue = finalRevenueTransactions.filter(transaction => {
-                    // Giữ lại transaction vừa tạo hoặc transaction không phải của đơn hàng thuộc bàn này
+                    // Giữ lại transaction vừa tạo
                     if (transaction.id === newTransaction.id) return true;
+
+                    // Xóa transaction của đơn hàng nếu đơn hàng đó thuộc phiên chơi hiện tại
                     if (transaction.type === 'order' && transaction.tableId === paymentTable.id) {
-                        // Đây là transaction của đơn hàng thuộc bàn này, cần xóa để tránh tính trùng
-                        return false;
+                        // Kiểm tra xem đơn hàng này có trong phiên chơi hiện tại không
+                        if (transaction.orderId && orderIdsInSession.has(transaction.orderId)) {
+                            return false; // Xóa transaction này
+                        }
                     }
                     return true;
                 });
@@ -835,16 +872,24 @@ const BilliardTables = ({ serviceMode = false }: BilliardTablesProps) => {
                                     <div className="divide-y divide-purple-100">
                                         {orderDetails.map((order) => (
                                             <div key={order.id} className="px-4 py-3">
-                                                <div className="flex justify-between items-start mb-1">
-                                                    <span className="text-sm text-gray-600">Đơn #{order.id}</span>
-                                                    <span className="text-sm font-semibold text-gray-800">
-                                                        {order.items.length} món
-                                                    </span>
-                                                </div>
-                                                <div className="text-right">
+                                                <div className="flex justify-between items-start mb-2">
+                                                    <span className="text-sm font-semibold text-gray-700">Đơn #{order.id}</span>
                                                     <span className="text-sm font-bold text-purple-600">
                                                         {order.totalAmount.toLocaleString('vi-VN')}đ
                                                     </span>
+                                                </div>
+                                                {/* Chi tiết các món trong đơn */}
+                                                <div className="bg-purple-50 rounded-lg p-2 mt-2 space-y-1">
+                                                    {order.items.map((item) => (
+                                                        <div key={item.id} className="flex justify-between text-xs">
+                                                            <span className="text-gray-700">
+                                                                {item.menuItemName} × {item.quantity}
+                                                            </span>
+                                                            <span className="font-semibold text-gray-800">
+                                                                {(item.price * item.quantity).toLocaleString('vi-VN')}đ
+                                                            </span>
+                                                        </div>
+                                                    ))}
                                                 </div>
                                             </div>
                                         ))}
@@ -910,4 +955,5 @@ const BilliardTables = ({ serviceMode = false }: BilliardTablesProps) => {
 };
 
 export default BilliardTables;
+
 
