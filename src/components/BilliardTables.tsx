@@ -10,6 +10,7 @@ import { Order } from '../types/order';
 import LoadingSpinner from './LoadingSpinner';
 import Modal from './Modal';
 import { useModal } from '../hooks/useModal';
+import { Settings } from '../types/settings';
 
 interface BilliardTablesProps {
     serviceMode?: boolean; // Chế độ phục vụ - cho phép cả owner phục vụ bàn
@@ -40,6 +41,24 @@ const BilliardTables = ({ serviceMode = false }: BilliardTablesProps) => {
     const [currentTime, setCurrentTime] = useState(new Date());
     const [showOrderModal, setShowOrderModal] = useState(false);
     const [orderTable, setOrderTable] = useState<BilliardTable | null>(null);
+    const [bankSettings, setBankSettings] = useState<Settings | null>(null);
+    const [bankCode, setBankCode] = useState<string>('');
+    const [paymentMethod, setPaymentMethod] = useState<'cash' | 'bank'>('cash');
+
+    // Hàm format thời gian từ số giờ (số thập phân) sang "X giờ Y phút"
+    const formatDuration = (hours: number): string => {
+        const totalMinutes = Math.round(hours * 60);
+        const h = Math.floor(totalMinutes / 60);
+        const m = totalMinutes % 60;
+        
+        if (h === 0) {
+            return `${m} phút`;
+        } else if (m === 0) {
+            return `${h} giờ`;
+        } else {
+            return `${h} giờ ${m} phút`;
+        }
+    };
 
     // Hàm tính duration từ startTime đến hiện tại
     const calculateDuration = (startTime: string, referenceTime: Date = new Date()): number => {
@@ -88,6 +107,30 @@ const BilliardTables = ({ serviceMode = false }: BilliardTablesProps) => {
             }
         };
         loadData();
+    }, []);
+
+    // Load bank settings để tạo QR code
+    useEffect(() => {
+        const loadBankSettings = async () => {
+            try {
+                const settings = await getData<Settings>(DB_KEYS.SETTINGS, {} as Settings);
+                if (settings && settings.bankAccount && settings.bankAccount.bankName) {
+                    setBankSettings(settings);
+                    // Tìm bank code từ shortName
+                    const banksResponse = await fetch('/bank.json');
+                    const banksData = await banksResponse.json();
+                    if (banksData.code === '00' && banksData.data) {
+                        const bank = banksData.data.find((b: any) => b.shortName === settings.bankAccount.bankName);
+                        if (bank) {
+                            setBankCode(bank.code);
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading bank settings:', error);
+            }
+        };
+        loadBankSettings();
     }, []);
 
     // Cập nhật thời gian hiện tại mỗi phút để trigger re-render và tính lại duration
@@ -808,8 +851,10 @@ const BilliardTables = ({ serviceMode = false }: BilliardTablesProps) => {
 
             {/* Modal tính tiền */}
             {showPaymentModal && paymentTable && paymentDetails && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                    <div className="bg-white rounded-lg shadow-xl p-6 max-w-lg w-full mx-4">
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                    <div className="flex flex-col lg:flex-row gap-4 justify-center items-center w-full max-w-6xl">
+                        {/* Modal thanh toán */}
+                        <div className="bg-white rounded-lg shadow-xl p-6 max-w-lg w-full lg:flex-1">
                         <div className="flex items-center justify-between mb-4">
                             <h3 className="text-2xl font-bold text-gray-800">Tính tiền bàn</h3>
                             <button
@@ -855,7 +900,7 @@ const BilliardTables = ({ serviceMode = false }: BilliardTablesProps) => {
                                                 <div className="flex justify-between items-start mb-1">
                                                     <span className="text-sm text-gray-600">{detail.period}</span>
                                                     <span className="text-sm font-semibold text-gray-800">
-                                                        {detail.hours} giờ × {detail.price.toLocaleString('vi-VN')}đ
+                                                        {formatDuration(detail.hours)} × {detail.price.toLocaleString('vi-VN')}đ/giờ
                                                     </span>
                                                 </div>
                                                 <div className="text-right">
@@ -936,6 +981,36 @@ const BilliardTables = ({ serviceMode = false }: BilliardTablesProps) => {
                                 </div>
                             </div>
 
+                            {/* Phương thức thanh toán */}
+                            <div className="border border-gray-200 rounded-lg p-4">
+                                <p className="text-sm font-semibold text-gray-700 mb-3">Phương thức thanh toán</p>
+                                <div className="flex gap-4">
+                                    <label className="flex items-center gap-2 cursor-pointer">
+                                        <input
+                                            type="radio"
+                                            name="paymentMethod"
+                                            value="cash"
+                                            checked={paymentMethod === 'cash'}
+                                            onChange={(e) => setPaymentMethod(e.target.value as 'cash' | 'bank')}
+                                            className="w-4 h-4 text-indigo-600"
+                                        />
+                                        <span className="text-sm text-gray-700">💵 Tiền mặt</span>
+                                    </label>
+                                    <label className="flex items-center gap-2 cursor-pointer">
+                                        <input
+                                            type="radio"
+                                            name="paymentMethod"
+                                            value="bank"
+                                            checked={paymentMethod === 'bank'}
+                                            onChange={(e) => setPaymentMethod(e.target.value as 'cash' | 'bank')}
+                                            className="w-4 h-4 text-indigo-600"
+                                        />
+                                        <span className="text-sm text-gray-700">🏦 Chuyển khoản</span>
+                                    </label>
+                                </div>
+                            </div>
+
+
                             {/* Nút hành động */}
                             <div className="flex gap-3 pt-2">
                                 <button
@@ -952,6 +1027,53 @@ const BilliardTables = ({ serviceMode = false }: BilliardTablesProps) => {
                                 </button>
                             </div>
                         </div>
+                        </div>
+
+                        {/* QR Code thanh toán - bên cạnh modal khi chọn chuyển khoản */}
+                        {paymentMethod === 'bank' && bankSettings && bankSettings.bankAccount.accountNumber && bankCode && (() => {
+                            const totalAmount = paymentDetails.total + orderTotal;
+                            const description = `Thanh toan ban ${paymentTable.name}`;
+                            const qrCodeUrl = `https://img.vietqr.io/image/${bankCode}-${bankSettings.bankAccount.accountNumber}-compact2.png?amount=${totalAmount}&addInfo=${encodeURIComponent(description)}&accountName=${encodeURIComponent(bankSettings.bankAccount.accountHolder)}`;
+                            
+                            return (
+                                <div className="bg-white rounded-lg shadow-xl p-6 w-full lg:w-auto lg:flex-shrink-0">
+                                    <h3 className="text-xl font-bold text-gray-800 mb-4 text-center">QR Code thanh toán</h3>
+                                    <div className="flex flex-col items-center gap-4">
+                                        <img 
+                                            src={qrCodeUrl}
+                                            alt="QR Code thanh toán"
+                                            className="w-64 h-64 border-2 border-gray-300 rounded-lg bg-white p-3"
+                                        />
+                                        <div className="text-center space-y-2 w-full">
+                                            <div>
+                                                <p className="text-xs text-gray-500 mb-1">Ngân hàng</p>
+                                                <p className="text-sm font-semibold text-gray-700">{bankSettings.bankAccount.bankName}</p>
+                                            </div>
+                                            <div>
+                                                <p className="text-xs text-gray-500 mb-1">Số tài khoản</p>
+                                                <p className="text-sm font-semibold text-gray-700">{bankSettings.bankAccount.accountNumber}</p>
+                                            </div>
+                                            <div>
+                                                <p className="text-xs text-gray-500 mb-1">Chủ tài khoản</p>
+                                                <p className="text-sm font-semibold text-gray-700">{bankSettings.bankAccount.accountHolder}</p>
+                                            </div>
+                                            <div className="pt-2 border-t border-gray-200">
+                                                <p className="text-xs text-gray-500 mb-1">Số tiền</p>
+                                                <p className="text-lg font-bold text-indigo-600">
+                                                    {totalAmount.toLocaleString('vi-VN')}đ
+                                                </p>
+                                            </div>
+                                            <div>
+                                                <p className="text-xs text-gray-500 mb-1">Nội dung</p>
+                                                <p className="text-xs font-medium text-gray-700 break-words">
+                                                    {description}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            );
+                        })()}
                     </div>
                 </div>
             )}

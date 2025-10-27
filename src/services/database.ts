@@ -20,6 +20,7 @@ export const DB_KEYS = {
     USERS: 'users',
     MENU: 'menu',
     REVENUE: 'revenue',
+    SETTINGS: 'settings',
 } as const;
 
 /**
@@ -53,6 +54,7 @@ export const loadDatabaseFromFile = async (): Promise<Record<string, unknown>> =
         employees: [],
         menu: [],
         revenue: [],
+        settings: {},
     };
 };
 

@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
+  <!-- Pool ball with number 8 -->
+  <circle cx="50" cy="50" r="45" fill="#000" stroke="#333" stroke-width="2"/>
+  <circle cx="50" cy="50" r="40" fill="#1a1a1a"/>
+  
+  <!-- Number 8 -->
+  <text x="50" y="58" font-family="Arial, sans-serif" font-size="32" font-weight="bold" fill="#fff" text-anchor="middle">8</text>
+  
+  <!-- Highlight/shine -->
+  <ellipse cx="35" cy="35" rx="12" ry="8" fill="#fff" opacity="0.3"/>
+</svg>
+

@@ -35,6 +35,9 @@ const Login = () => {
             <div className="max-w-md w-full">
                 <div className="bg-white rounded-2xl shadow-xl p-6 sm:p-8">
                     <div className="text-center mb-6 sm:mb-8">
+                        <div className="flex justify-center mb-4">
+                            <img src="/logo.svg" alt="BI A Manager Logo" className="w-20 h-20 sm:w-24 sm:h-24" />
+                        </div>
                         <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-2">
                             BI A Manager
                         </h1>

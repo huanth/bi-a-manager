@@ -226,27 +226,6 @@ const EmployeeManagement = () => {
                 <h2 className="text-xl sm:text-2xl font-bold text-gray-800">Quản lý Nhân viên</h2>
                 <div className="flex gap-2">
                     <button
-                        onClick={handleShowJsonData}
-                        className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition font-medium"
-                        title="Xem dữ liệu JSON để copy vào file"
-                    >
-                        📋 Xem JSON
-                    </button>
-                    <button
-                        onClick={async () => {
-                            try {
-                                await exportToJSON();
-                                modal.showSuccess('Đã export dữ liệu ra file database.json');
-                            } catch (error) {
-                                modal.showError('Lỗi khi export dữ liệu');
-                            }
-                        }}
-                        className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-medium"
-                        title="Export dữ liệu ra file JSON"
-                    >
-                        📥 Export JSON
-                    </button>
-                    <button
                         onClick={() => handleOpenModal()}
                         className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition font-medium"
                     >

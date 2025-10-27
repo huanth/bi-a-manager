@@ -2,3 +2,46 @@
 @tailwind components;
 @tailwind utilities;
 
+/* React Select Styles */
+.react-select-container .react-select__control {
+    border-color: #d1d5db;
+    border-radius: 0.5rem;
+    min-height: 42px;
+}
+
+.react-select-container .react-select__control:hover {
+    border-color: #d1d5db;
+}
+
+.react-select-container .react-select__control--is-focused {
+    border-color: #4f46e5;
+    box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.1);
+}
+
+.react-select-container .react-select__menu {
+    border-radius: 0.5rem;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+.react-select-container .react-select__option {
+    padding: 0.5rem 0.75rem;
+}
+
+.react-select-container .react-select__option--is-focused {
+    background-color: #eef2ff;
+}
+
+.react-select-container .react-select__option--is-selected {
+    background-color: #4f46e5;
+    color: white;
+}
+
+.react-select-container .react-select__input-container {
+    margin: 0;
+    padding: 0;
+}
+
+.react-select-container .react-select__placeholder {
+    color: #9ca3af;
+}
+

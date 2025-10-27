@@ -6,29 +6,19 @@ import EmployeeManagement from './EmployeeManagement';
 import OrderManagement from './OrderManagement';
 import MenuManagement from './MenuManagement';
 import RevenueStats from './RevenueStats';
+import Settings from './Settings';
 import { getData, DB_KEYS } from '../services/database';
-import { RevenueTransaction } from '../types/revenue';
 import { Order } from '../types/order';
 
 const Dashboard = () => {
     const { user, logout, hasRole } = useAuth();
-    const [activeTab, setActiveTab] = useState<'service' | 'tables' | 'orders' | 'menu' | 'revenue' | 'employees'>('service');
-    const [totalRevenue, setTotalRevenue] = useState(0);
+    const [activeTab, setActiveTab] = useState<'service' | 'tables' | 'orders' | 'menu' | 'revenue' | 'employees' | 'settings'>('service');
     const [pendingOrdersCount, setPendingOrdersCount] = useState(0);
 
-    // Load tổng doanh thu và đếm đơn hàng chưa hoàn thành
+    // Đếm đơn hàng chưa hoàn thành
     const loadData = async () => {
         try {
-            const transactions = await getData<RevenueTransaction[]>(DB_KEYS.REVENUE, []);
             const orders = await getData<Order[]>(DB_KEYS.ORDERS, []);
-
-            const transactionsTotal = transactions.reduce((sum, t) => sum + t.amount, 0);
-            const ordersTotal = orders
-                .filter(o => o.status === 'completed')
-                .reduce((sum, o) => sum + o.totalAmount, 0);
-
-            setTotalRevenue(transactionsTotal + ordersTotal);
-
             // Đếm số đơn hàng chưa hoàn thành (pending)
             const pendingCount = orders.filter(o => o.status === 'pending').length;
             setPendingOrdersCount(pendingCount);
@@ -41,7 +31,7 @@ const Dashboard = () => {
         // Load dữ liệu lần đầu
         loadData();
 
-        // Reload mỗi 30 giây để cập nhật doanh thu và số đơn hàng
+        // Reload mỗi 30 giây để cập nhật số đơn hàng
         const interval = setInterval(loadData, 30000);
 
         // Lắng nghe custom event để refresh khi có action API
@@ -50,14 +40,10 @@ const Dashboard = () => {
         };
 
         window.addEventListener('ordersUpdated', handleDataChange);
-        window.addEventListener('revenueUpdated', handleDataChange);
-        window.addEventListener('tablePaymentCompleted', handleDataChange);
 
         return () => {
             clearInterval(interval);
             window.removeEventListener('ordersUpdated', handleDataChange);
-            window.removeEventListener('revenueUpdated', handleDataChange);
-            window.removeEventListener('tablePaymentCompleted', handleDataChange);
         };
     }, []);
 
@@ -74,7 +60,10 @@ const Dashboard = () => {
             <header className="bg-white shadow-sm">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-4">
                     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-                        <h1 className="text-xl sm:text-2xl font-bold text-gray-800">BI A Manager</h1>
+                        <div className="flex items-center gap-3">
+                            <img src="/logo.svg" alt="BI A Manager Logo" className="w-10 h-10 sm:w-12 sm:h-12" />
+                            <h1 className="text-xl sm:text-2xl font-bold text-gray-800">BI A Manager</h1>
+                        </div>
                         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4 w-full sm:w-auto">
                             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3">
                                 <span className="text-sm sm:text-base text-gray-700">
@@ -100,27 +89,6 @@ const Dashboard = () => {
 
             {/* Main Content */}
             <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                {/* Stats Cards */}
-                <div className={`grid grid-cols-1 ${isOwner ? 'md:grid-cols-3' : 'md:grid-cols-2'} gap-6 mb-8`}>
-
-
-                    {isOwner && (
-                        <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg shadow p-4 text-white">
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <p className="text-purple-100 text-sm">Tổng doanh thu</p>
-                                    <p className="text-3xl font-bold mt-2">{totalRevenue.toLocaleString('vi-VN')}đ</p>
-                                </div>
-                                <div className="bg-white bg-opacity-20 p-3 rounded-lg">
-                                    <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                    </svg>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-                </div>
-
                 {/* Tabs cho Owner */}
                 {isOwner && (
                     <div className="mb-6">
@@ -185,6 +153,15 @@ const Dashboard = () => {
                                 >
                                     Nhân viên
                                 </button>
+                                <button
+                                    onClick={() => setActiveTab('settings')}
+                                    className={`px-3 sm:px-6 py-2 sm:py-3 font-medium text-xs sm:text-sm border-b-2 transition whitespace-nowrap ${activeTab === 'settings'
+                                        ? 'border-indigo-500 text-indigo-600'
+                                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                                        }`}
+                                >
+                                    ⚙️ Cài đặt
+                                </button>
                             </nav>
                         </div>
                     </div>
@@ -235,6 +212,8 @@ const Dashboard = () => {
                         <MenuManagement />
                     ) : activeTab === 'revenue' ? (
                         <RevenueStats />
+                    ) : activeTab === 'settings' ? (
+                        <Settings />
                     ) : (
                         <EmployeeManagement />
                     )

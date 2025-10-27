@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <!-- Background circle (pool table green) -->
+  <circle cx="100" cy="100" r="90" fill="#1a5632" stroke="#0d3d1f" stroke-width="4"/>
+  
+  <!-- Inner circle (pool table felt) -->
+  <circle cx="100" cy="100" r="75" fill="#2d7a4e"/>
+  
+  <!-- Pool ball with number 8 -->
+  <circle cx="100" cy="100" r="50" fill="#000" stroke="#333" stroke-width="2"/>
+  <circle cx="100" cy="100" r="45" fill="#1a1a1a"/>
+  
+  <!-- Number 8 -->
+  <text x="100" y="110" font-family="Arial, sans-serif" font-size="50" font-weight="bold" fill="#fff" text-anchor="middle">8</text>
+  
+  <!-- Cue stick (optional decorative element) -->
+  <line x1="160" y1="40" x2="185" y2="25" stroke="#8b4513" stroke-width="8" stroke-linecap="round"/>
+  <line x1="165" y1="35" x2="180" y2="30" stroke="#654321" stroke-width="6" stroke-linecap="round"/>
+</svg>
+

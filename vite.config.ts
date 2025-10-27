@@ -23,6 +23,12 @@ export default defineConfig({
           });
         },
       },
+      '/api/banks': {
+        target: 'https://api.vietqr.io',
+        changeOrigin: true,
+        secure: true,
+        rewrite: (path) => path.replace(/^\/api\/banks/, '/v2/banks'),
+      },
     },
   },
 })
