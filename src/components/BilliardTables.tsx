@@ -835,15 +835,7 @@ const BilliardTables = ({ serviceMode = false }: BilliardTablesProps) => {
                                     </div>
                                 )}
 
-                                {/* QR Code để khách order menu */}
-                                <div className="mt-3 pt-3 border-t border-gray-200 text-center">
-                                    <p className="text-xs text-gray-600 mb-2">Mã QR để order menu</p>
-                                    <img
-                                        src={`https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent(`${window.location.origin}/order/${table.id}`)}`}
-                                        alt="QR Code"
-                                        className="mx-auto w-20 h-20 border border-gray-300 rounded p-1 bg-white"
-                                    />
-                                </div>
+                                {/* Customer Order QR removed */}
 
                                 {/* Action buttons */}
                                 <div className="mt-4 flex gap-2 flex-wrap">

@@ -3,13 +3,12 @@ import { Order, OrderStatus } from '../types/order';
 import { getData, saveData, DB_KEYS } from '../services/database';
 import Modal from './Modal';
 import { useModal } from '../hooks/useModal';
-import NewOrderPopup from './NewOrderPopup';
 
 const OrderManagement = () => {
     const [orders, setOrders] = useState<Order[]>([]);
     const [filterStatus, setFilterStatus] = useState<OrderStatus | 'all'>('all');
     const [loading, setLoading] = useState(true);
-    const [newOrder, setNewOrder] = useState<Order | null>(null);
+    // Customer Order feature removed: no customer-driven popup
     const modal = useModal();
 
     useEffect(() => {
@@ -29,36 +28,8 @@ const OrderManagement = () => {
         };
         loadOrders();
 
-        // Lắng nghe event khi có order mới
-        const handleNewOrder = async (event: Event) => {
-            const customEvent = event as CustomEvent;
-            const { order: newOrderData } = customEvent.detail;
-
-            // Set order để hiển thị popup
-            if (newOrderData) {
-                setNewOrder(newOrderData);
-            }
-
-            // Show notification
-            modal.showSuccess('Có đơn hàng mới!');
-
-            // Reload orders
-            try {
-                const data = await getData<Order[]>(DB_KEYS.ORDERS, []);
-                const sortedData = data.sort((a, b) =>
-                    new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-                );
-                setOrders(sortedData);
-            } catch (error) {
-                // Error loading orders
-            }
-        };
-
-        window.addEventListener('newOrder', handleNewOrder);
-
-        return () => {
-            window.removeEventListener('newOrder', handleNewOrder);
-        };
+        // Customer Order event listeners removed
+        return () => {};
     }, [modal]);
 
     const filteredOrders = filterStatus === 'all'
@@ -271,13 +242,7 @@ const OrderManagement = () => {
                 )}
             </div>
 
-            {/* New Order Popup */}
-            {newOrder && (
-                <NewOrderPopup
-                    order={newOrder}
-                    onClose={() => setNewOrder(null)}
-                />
-            )}
+            {/* Customer Order popup removed */}
 
             {/* Modal */}
             <Modal

@@ -1,8 +1,8 @@
 # Hướng dẫn Deploy
 
-## Vấn đề 404 khi truy cập `/order/:id`
+## Vấn đề 404 với React Router
 
-Khi deploy lên production, các route như `/order/:id` có thể bị lỗi 404 vì server không biết cách xử lý React Router.
+Khi deploy lên production, cần cấu hình server để luôn trả `index.html` cho các route SPA.
 
 ## Giải pháp
 
@@ -35,7 +35,7 @@ Xem file `nginx.conf.example` để biết cấu hình đầy đủ.
 
 1. Build: `npm run build`
 2. Upload thư mục `dist/` lên server
-3. Truy cập: `https://your-domain.com/order/1` (thay 1 bằng ID bàn thực tế)
+3. Truy cập ứng dụng và điều hướng giữa các tab để xác nhận routing hoạt động
 4. Nếu vẫn 404, kiểm tra server logs
 
 ## Cấu trúc file cần upload
@@ -54,7 +54,6 @@ dist/
 
 Sau khi deploy, test các route:
 - ✅ `/` - Trang chủ
-- ✅ `/order/1` - Order từ bàn 1
-- ✅ `/order/2` - Order từ bàn 2
+  (Đã bỏ tính năng khách tự order qua URL)
 - ✅ QR code phải hoạt động
 

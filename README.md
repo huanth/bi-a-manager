@@ -12,7 +12,6 @@ Hệ thống quản lý quán bi-a hiện đại được xây dựng bằng Rea
 - Tính tổng tiền bao gồm cả đơn hàng
 
 ### 📋 Quản lý Đơn hàng
-- Đặt món đồ ăn/nước uống cho từng bàn
 - Theo dõi trạng thái đơn hàng (Chờ xử lý, Hoàn thành)
 - Xem chi tiết đơn hàng và tổng tiền
 - Tích hợp với quy trình thanh toán bàn
@@ -185,7 +184,6 @@ Backend API endpoint được cấu hình trong `vite.config.ts`:
 ### Employee (Nhân viên)
 - ✅ Phục vụ bàn bi-a
 - ✅ Quản lý đơn hàng
-- ✅ Xem QR Code thanh toán khi khách chọn chuyển khoản
 
 ## 🔒 Bảo mật
 
