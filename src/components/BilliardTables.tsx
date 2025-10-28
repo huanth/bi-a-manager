@@ -267,6 +267,176 @@ const BilliardTables = ({ serviceMode = false }: BilliardTablesProps) => {
         setShowPaymentModal(true);
     };
 
+    // In hóa đơn thanh toán
+    const printInvoice = () => {
+        if (!paymentTable || !paymentDetails) return;
+
+        const totalAmount = paymentDetails.total + orderTotal;
+        const now = new Date();
+        const dateStr = now.toLocaleDateString('vi-VN');
+        const timeStr = now.toLocaleTimeString('vi-VN');
+
+        // Tạo nội dung hóa đơn
+        let invoiceContent = `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Hóa đơn thanh toán - ${paymentTable.name}</title>
+    <style>
+        body {
+            font-family: 'Courier New', monospace;
+            max-width: 400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            text-align: center;
+            border-bottom: 2px dashed #000;
+            padding-bottom: 10px;
+            margin-bottom: 10px;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 20px;
+            font-weight: bold;
+        }
+        .info {
+            margin: 10px 0;
+        }
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            margin: 5px 0;
+        }
+        .item-label {
+            font-weight: bold;
+        }
+        .section {
+            border-top: 1px dashed #ccc;
+            padding-top: 10px;
+            margin-top: 10px;
+        }
+        .total {
+            font-size: 18px;
+            font-weight: bold;
+            text-align: center;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 2px dashed #000;
+        }
+        .thank-you {
+            text-align: center;
+            margin-top: 20px;
+            font-style: italic;
+        }
+        @media print {
+            body {
+                max-width: 100%;
+            }
+            .no-print {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>HÓA ĐƠN THANH TOÁN</h1>
+        <p>Bàn: ${paymentTable.name}</p>
+    </div>
+    
+    <div class="info">
+        <div class="info-item">
+            <span class="item-label">Ngày:</span>
+            <span>${dateStr}</span>
+        </div>
+        <div class="info-item">
+            <span class="item-label">Giờ:</span>
+            <span>${timeStr}</span>
+        </div>
+        <div class="info-item">
+            <span class="item-label">Nhân viên:</span>
+            <span>${user?.username || 'Unknown'}</span>
+        </div>
+    </div>`;
+
+        // Chi tiết tính tiền bàn
+        if (paymentDetails.details && paymentDetails.details.length > 0) {
+            invoiceContent += `
+    <div class="section">
+        <h3 style="margin: 10px 0 5px 0; font-size: 16px;">CHI TIẾT GIỜ CHƠI BÀN:</h3>`;
+            paymentDetails.details.forEach(detail => {
+                invoiceContent += `
+        <div style="display: flex; justify-content: space-between; margin: 5px 0;">
+            <span>${detail.period}</span>
+            <span>${detail.hours.toFixed(1)}h × ${detail.price.toLocaleString('vi-VN')}đ/h = ${detail.amount.toLocaleString('vi-VN')}đ</span>
+        </div>`;
+            });
+            invoiceContent += `
+        <div style="display: flex; justify-content: space-between; margin-top: 10px; font-weight: bold; border-top: 1px dashed #ccc; padding-top: 5px;">
+            <span>Tiền chơi bàn:</span>
+            <span>${paymentDetails.total.toLocaleString('vi-VN')}đ</span>
+        </div>
+    </div>`;
+        } else {
+            invoiceContent += `
+    <div class="section">
+        <div style="display: flex; justify-content: space-between;">
+            <span class="item-label">Tiền chơi bàn:</span>
+            <span>${paymentDetails.total.toLocaleString('vi-VN')}đ</span>
+        </div>
+    </div>`;
+        }
+
+        // Chi tiết đơn hàng
+        if (orderDetails.length > 0) {
+            invoiceContent += `
+    <div class="section">
+        <h3 style="margin: 10px 0 5px 0; font-size: 16px;">CHI TIẾT ĐƠN HÀNG:</h3>`;
+            orderDetails.forEach(order => {
+                order.items.forEach(item => {
+                    invoiceContent += `
+        <div style="display: flex; justify-content: space-between; margin: 5px 0;">
+            <span>${item.menuItemName} × ${item.quantity}</span>
+            <span>${(item.price * item.quantity).toLocaleString('vi-VN')}đ</span>
+        </div>`;
+                });
+            });
+            invoiceContent += `
+        <div style="display: flex; justify-content: space-between; margin-top: 10px; font-weight: bold; border-top: 1px dashed #ccc; padding-top: 5px;">
+            <span>Tiền đơn hàng:</span>
+            <span>${orderTotal.toLocaleString('vi-VN')}đ</span>
+        </div>
+    </div>`;
+        }
+
+        invoiceContent += `
+    <div class="total">
+        TỔNG CỘNG: ${totalAmount.toLocaleString('vi-VN')}đ
+    </div>
+    
+    <div class="thank-you">
+        Cảm ơn quý khách!<br>
+        Chúc quý khách vui vẻ!
+    </div>
+</body>
+</html>`;
+
+        // Mở cửa sổ mới để in
+        const printWindow = window.open('', '_blank');
+        if (printWindow) {
+            printWindow.document.write(invoiceContent);
+            printWindow.document.close();
+            printWindow.focus();
+            // Đợi một chút rồi mới in để đảm bảo nội dung đã load
+            setTimeout(() => {
+                printWindow.print();
+                printWindow.close();
+            }, 250);
+        }
+    };
+
     const handleConfirmPayment = async () => {
         if (paymentTable && paymentDetails) {
             // Tính tổng tiền bao gồm cả đơn hàng
@@ -308,6 +478,11 @@ const BilliardTables = ({ serviceMode = false }: BilliardTablesProps) => {
 
                 // Thông báo thành công
                 modal.showSuccess(`Thanh toán thành công!\nTổng tiền: ${totalAmount.toLocaleString('vi-VN')}đ`);
+
+                // In hóa đơn
+                setTimeout(() => {
+                    printInvoice();
+                }, 500);
 
                 // Đánh dấu các đơn hàng trong phiên chơi hiện tại đã được thanh toán
                 // Chỉ đánh dấu những đơn hàng có trong orderDetails (đã được lọc theo thời gian)
@@ -1002,6 +1177,12 @@ const BilliardTables = ({ serviceMode = false }: BilliardTablesProps) => {
                                         className="flex-1 bg-gray-200 text-gray-700 py-3 rounded-lg hover:bg-gray-300 transition font-medium"
                                     >
                                         Hủy
+                                    </button>
+                                    <button
+                                        onClick={printInvoice}
+                                        className="flex-1 bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition font-medium"
+                                    >
+                                        🖨️ In hóa đơn
                                     </button>
                                     <button
                                         onClick={handleConfirmPayment}
