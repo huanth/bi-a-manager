@@ -4,11 +4,41 @@ import { Order } from '../types/order';
 import { getData, DB_KEYS } from '../services/database';
 import LoadingSpinner from './LoadingSpinner';
 
+// Timezone mặc định: Asia/Ho Chi Minh (UTC+7)
+const TIMEZONE = 'Asia/Saigon';
+
+// Helper function để lấy thông tin ngày, tháng, năm theo timezone Vietnam
+const getDateComponents = (dateString: string | Date) => {
+    const date = typeof dateString === 'string' ? new Date(dateString) : dateString;
+
+    // Sử dụng Intl.DateTimeFormat để lấy giá trị theo timezone Vietnam
+    const parts = new Intl.DateTimeFormat('en-US', {
+        year: 'numeric',
+        month: 'numeric',
+        day: 'numeric',
+        timeZone: TIMEZONE,
+    }).formatToParts(date);
+
+    return {
+        year: parseInt(parts.find(p => p.type === 'year')?.value || '0'),
+        month: parseInt(parts.find(p => p.type === 'month')?.value || '0') - 1, // month is 0-indexed
+        day: parseInt(parts.find(p => p.type === 'day')?.value || '0'),
+    };
+};
+
 const RevenueStats = () => {
     const [revenueData, setRevenueData] = useState<RevenueTransaction[]>([]);
     const [orders, setOrders] = useState<Order[]>([]);
     const [loading, setLoading] = useState(true);
-    const [filterDate, setFilterDate] = useState<string>(new Date().toISOString().split('T')[0]);
+    const [filterDate, setFilterDate] = useState<string>('');
+
+    useEffect(() => {
+        // Khởi tạo filterDate theo timezone Vietnam
+        const now = new Date();
+        const todayComponents = getDateComponents(now);
+        const initialDate = `${todayComponents.year}-${String(todayComponents.month + 1).padStart(2, '0')}-${String(todayComponents.day).padStart(2, '0')}`;
+        setFilterDate(initialDate);
+    }, []);
 
     useEffect(() => {
         const loadData = async () => {
@@ -29,86 +59,106 @@ const RevenueStats = () => {
         loadData();
     }, []);
 
-    // Tính tổng doanh thu từ tất cả nguồn
-    const totalRevenue = revenueData.reduce((sum, t) => sum + t.amount, 0) +
-        orders.filter(o => o.status === 'completed').reduce((sum, o) => sum + o.totalAmount, 0);
+    // Tính tổng doanh thu chỉ từ revenue transactions (đã bao gồm thanh toán bàn + đơn hàng)
+    const totalRevenue = revenueData.reduce((sum, t) => sum + t.amount, 0);
 
-    // Tính doanh thu theo ngày
+    // Tính doanh thu theo ngày (từ 00:00 đến 23:59) theo timezone Vietnam
+    // Chỉ tính từ revenue transactions (đã thanh toán bàn và đơn hàng)
     const getRevenueByDate = (date: string) => {
-        const dateStr = date.split('T')[0];
+        // Parse target date theo timezone Vietnam
+        const targetDateComponents = getDateComponents(new Date(date + 'T00:00:00Z'));
+        const { year: targetYear, month: targetMonth, day: targetDay } = targetDateComponents;
 
-        // Doanh thu từ transactions
-        const transactionsRevenue = revenueData
-            .filter(t => t.createdAt.startsWith(dateStr))
+        // Chỉ tính doanh thu từ revenue transactions
+        return revenueData
+            .filter(t => {
+                const { year, month, day } = getDateComponents(t.createdAt);
+                return year === targetYear && month === targetMonth && day === targetDay;
+            })
             .reduce((sum, t) => sum + t.amount, 0);
-
-        // Doanh thu từ orders completed trong ngày
-        const ordersRevenue = orders
-            .filter(o => o.status === 'completed' && o.completedAt && o.completedAt.startsWith(dateStr))
-            .reduce((sum, o) => sum + o.totalAmount, 0);
-
-        return transactionsRevenue + ordersRevenue;
     };
 
-    // Tính doanh thu 7 ngày gần nhất
+    // Tính doanh thu 7 ngày gần nhất theo timezone Vietnam
     const getLast7DaysRevenue = () => {
         const days = [];
+
+        // Lấy ngày hôm nay theo timezone Vietnam
+        const now = new Date();
+        const todayComponents = getDateComponents(now);
+
         for (let i = 6; i >= 0; i--) {
-            const date = new Date();
-            date.setDate(date.getDate() - i);
-            const dateStr = date.toISOString().split('T')[0];
+            // Tính ngày cần lấy (i ngày trước)
+            const targetDate = new Date(todayComponents.year, todayComponents.month, todayComponents.day);
+            targetDate.setDate(targetDate.getDate() - i);
+
+            // Format date string
+            const year = targetDate.getFullYear();
+            const month = String(targetDate.getMonth() + 1).padStart(2, '0');
+            const day = String(targetDate.getDate()).padStart(2, '0');
+            const dateStr = `${year}-${month}-${day}`;
+
             const revenue = getRevenueByDate(dateStr);
+
+            // Format date label
+            const dateLabel = targetDate.toLocaleDateString('vi-VN', {
+                weekday: 'short',
+                day: '2-digit',
+                month: '2-digit',
+            });
+
             days.push({
                 date: dateStr,
                 revenue,
-                dateLabel: date.toLocaleDateString('vi-VN', { weekday: 'short', day: '2-digit', month: '2-digit' }),
+                dateLabel,
             });
         }
         return days;
     };
 
-    // Tính doanh thu tháng hiện tại
+    // Tính doanh thu tháng hiện tại theo timezone Vietnam
     const getCurrentMonthRevenue = () => {
         const now = new Date();
-        const currentMonth = now.getMonth();
-        const currentYear = now.getFullYear();
+        const components = getDateComponents(now);
+        const currentMonth = components.month;
+        const currentYear = components.year;
 
-        const monthTransactions = revenueData.filter(t => {
-            const date = new Date(t.createdAt);
-            return date.getMonth() === currentMonth && date.getFullYear() === currentYear;
-        }).reduce((sum, t) => sum + t.amount, 0);
-
-        const monthOrders = orders.filter(o => {
-            if (o.status !== 'completed' || !o.completedAt) return false;
-            const date = new Date(o.completedAt);
-            return date.getMonth() === currentMonth && date.getFullYear() === currentYear;
-        }).reduce((sum, o) => sum + o.totalAmount, 0);
-
-        return monthTransactions + monthOrders;
+        // Chỉ tính doanh thu từ revenue transactions
+        return revenueData
+            .filter(t => {
+                const { year, month } = getDateComponents(t.createdAt);
+                return month === currentMonth && year === currentYear;
+            })
+            .reduce((sum, t) => sum + t.amount, 0);
     };
 
-    // Tính doanh thu hôm nay
-    const todayRevenue = getRevenueByDate(new Date().toISOString().split('T')[0]);
+    // Tính doanh thu hôm nay theo timezone Vietnam
+    const now = new Date();
+    const todayComponents = getDateComponents(now);
+    const todayDateStr = `${todayComponents.year}-${String(todayComponents.month + 1).padStart(2, '0')}-${String(todayComponents.day).padStart(2, '0')}`;
+    const todayRevenue = getRevenueByDate(todayDateStr);
     const last7Days = getLast7DaysRevenue();
     const monthRevenue = getCurrentMonthRevenue();
 
-    // Lấy danh sách giao dịch của ngày được chọn
-    const selectedDateTransactions = [
-        ...revenueData.filter(t => t.createdAt.startsWith(filterDate)),
-        ...orders
-            .filter(o => o.status === 'completed' && o.completedAt && o.completedAt.startsWith(filterDate))
-            .map(o => ({
-                id: o.id,
-                type: 'order' as const,
-                orderId: o.id,
-                tableId: o.tableId,
-                tableName: o.tableName,
-                amount: o.totalAmount,
-                createdAt: o.completedAt!,
-                createdBy: o.createdBy,
-                note: `Đơn hàng #${o.id}`,
-            } as RevenueTransaction)),
-    ].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    // Lấy danh sách giao dịch của ngày được chọn (từ 00:00 đến 23:59) theo timezone Vietnam
+    // Chỉ lấy từ revenue transactions (đã thanh toán bàn và đơn hàng)
+    const getTransactionsForSelectedDate = () => {
+        // Nếu chưa có filterDate thì trả về mảng rỗng
+        if (!filterDate) return [];
+
+        // Parse target date theo timezone Vietnam
+        const targetDateComponents = getDateComponents(new Date(filterDate + 'T00:00:00Z'));
+        const { year: targetYear, month: targetMonth, day: targetDay } = targetDateComponents;
+
+        // Chỉ lấy từ revenue transactions
+        return revenueData
+            .filter(t => {
+                const { year, month, day } = getDateComponents(t.createdAt);
+                return year === targetYear && month === targetMonth && day === targetDay;
+            })
+            .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    };
+
+    const selectedDateTransactions = getTransactionsForSelectedDate();
 
     const formatDate = (dateString: string) => {
         const date = new Date(dateString);
@@ -118,6 +168,7 @@ const RevenueStats = () => {
             year: 'numeric',
             hour: '2-digit',
             minute: '2-digit',
+            timeZone: TIMEZONE,
         });
     };
 

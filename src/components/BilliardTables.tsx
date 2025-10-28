@@ -50,7 +50,7 @@ const BilliardTables = ({ serviceMode = false }: BilliardTablesProps) => {
         const totalMinutes = Math.round(hours * 60);
         const h = Math.floor(totalMinutes / 60);
         const m = totalMinutes % 60;
-        
+
         if (h === 0) {
             return `${m} phút`;
         } else if (m === 0) {
@@ -120,7 +120,7 @@ const BilliardTables = ({ serviceMode = false }: BilliardTablesProps) => {
                     const banksResponse = await fetch('/bank.json');
                     const banksData = await banksResponse.json();
                     if (banksData.code === '00' && banksData.data) {
-                        const bank = banksData.data.find((b: any) => b.shortName === settings.bankAccount.bankName);
+                        const bank = banksData.data.find((b: { shortName: string; code: string }) => b.shortName === settings.bankAccount.bankName);
                         if (bank) {
                             setBankCode(bank.code);
                         }
@@ -330,24 +330,6 @@ const BilliardTables = ({ serviceMode = false }: BilliardTablesProps) => {
                 window.dispatchEvent(new CustomEvent('ordersUpdated'));
                 window.dispatchEvent(new CustomEvent('revenueUpdated'));
                 window.dispatchEvent(new CustomEvent('tablePaymentCompleted'));
-
-                // Xóa các revenue transaction trùng của đơn hàng trong phiên chơi hiện tại (nếu có)
-                // Vì đã tính vào tổng tiền bàn, không cần tính riêng nữa
-                const finalRevenueTransactions = await getData<RevenueTransaction[]>(DB_KEYS.REVENUE, []);
-                const filteredRevenue = finalRevenueTransactions.filter(transaction => {
-                    // Giữ lại transaction vừa tạo
-                    if (transaction.id === newTransaction.id) return true;
-
-                    // Xóa transaction của đơn hàng nếu đơn hàng đó thuộc phiên chơi hiện tại
-                    if (transaction.type === 'order' && transaction.tableId === paymentTable.id) {
-                        // Kiểm tra xem đơn hàng này có trong phiên chơi hiện tại không
-                        if (transaction.orderId && orderIdsInSession.has(transaction.orderId)) {
-                            return false; // Xóa transaction này
-                        }
-                    }
-                    return true;
-                });
-                await saveData(DB_KEYS.REVENUE, filteredRevenue);
             } catch (error) {
                 // Error saving revenue transaction
             }
@@ -857,191 +839,191 @@ const BilliardTables = ({ serviceMode = false }: BilliardTablesProps) => {
                     <div className="flex flex-col lg:flex-row gap-4 justify-center items-center w-full max-w-6xl">
                         {/* Modal thanh toán */}
                         <div className="bg-white rounded-lg shadow-xl p-6 max-w-lg w-full lg:flex-1">
-                        <div className="flex items-center justify-between mb-4">
-                            <h3 className="text-2xl font-bold text-gray-800">Tính tiền bàn</h3>
-                            <button
-                                onClick={handleCancelPayment}
-                                className="text-gray-400 hover:text-gray-600 text-2xl"
-                            >
-                                ×
-                            </button>
-                        </div>
-
-                        <div className="space-y-4">
-                            {/* Thông tin bàn */}
-                            <div className="bg-indigo-50 rounded-lg p-4 border border-indigo-200">
-                                <div className="flex justify-between items-center">
-                                    <span className="text-gray-600">Bàn:</span>
-                                    <span className="text-xl font-bold text-indigo-700">{paymentTable.name}</span>
-                                </div>
-                            </div>
-
-                            {/* Thời gian */}
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
-                                    <p className="text-sm text-gray-600 mb-1">Bắt đầu</p>
-                                    <p className="text-lg font-semibold text-gray-800">{paymentTable.startTime}</p>
-                                </div>
-                                <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
-                                    <p className="text-sm text-gray-600 mb-1">Kết thúc</p>
-                                    <p className="text-lg font-semibold text-gray-800">
-                                        {new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}
-                                    </p>
-                                </div>
-                            </div>
-
-                            {/* Chi tiết tính tiền bàn */}
-                            {paymentDetails.details.length > 0 && (
-                                <div className="border border-gray-200 rounded-lg overflow-hidden">
-                                    <div className="bg-gray-100 px-4 py-2 border-b border-gray-200">
-                                        <p className="font-semibold text-gray-700">Chi tiết tính tiền chơi bàn</p>
-                                    </div>
-                                    <div className="divide-y divide-gray-200">
-                                        {paymentDetails.details.map((detail, index) => (
-                                            <div key={index} className="px-4 py-3">
-                                                <div className="flex justify-between items-start mb-1">
-                                                    <span className="text-sm text-gray-600">{detail.period}</span>
-                                                    <span className="text-sm font-semibold text-gray-800">
-                                                        {formatDuration(detail.hours)} × {detail.price.toLocaleString('vi-VN')}đ/giờ
-                                                    </span>
-                                                </div>
-                                                <div className="text-right">
-                                                    <span className="text-sm font-bold text-indigo-600">
-                                                        {detail.amount.toLocaleString('vi-VN')}đ
-                                                    </span>
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                    <div className="px-4 py-3 bg-gray-50 border-t border-gray-200">
-                                        <div className="flex justify-between items-center">
-                                            <span className="text-sm font-semibold text-gray-700">Tổng tiền chơi bàn:</span>
-                                            <span className="text-lg font-bold text-indigo-600">
-                                                {paymentDetails.total.toLocaleString('vi-VN')}đ
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* Chi tiết đơn hàng */}
-                            {orderDetails.length > 0 && (
-                                <div className="border border-purple-200 rounded-lg overflow-hidden">
-                                    <div className="bg-purple-100 px-4 py-2 border-b border-purple-200">
-                                        <p className="font-semibold text-purple-700">Chi tiết đơn hàng ({orderDetails.length} đơn)</p>
-                                    </div>
-                                    <div className="divide-y divide-purple-100">
-                                        {orderDetails.map((order) => (
-                                            <div key={order.id} className="px-4 py-3">
-                                                <div className="flex justify-between items-start mb-2">
-                                                    <span className="text-sm font-semibold text-gray-700">Đơn #{order.id}</span>
-                                                    <span className="text-sm font-bold text-purple-600">
-                                                        {order.totalAmount.toLocaleString('vi-VN')}đ
-                                                    </span>
-                                                </div>
-                                                {/* Chi tiết các món trong đơn */}
-                                                <div className="bg-purple-50 rounded-lg p-2 mt-2 space-y-1">
-                                                    {order.items.map((item) => (
-                                                        <div key={item.id} className="flex justify-between text-xs">
-                                                            <span className="text-gray-700">
-                                                                {item.menuItemName} × {item.quantity}
-                                                            </span>
-                                                            <span className="font-semibold text-gray-800">
-                                                                {(item.price * item.quantity).toLocaleString('vi-VN')}đ
-                                                            </span>
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                    <div className="px-4 py-3 bg-purple-50 border-t border-purple-200">
-                                        <div className="flex justify-between items-center">
-                                            <span className="text-sm font-semibold text-purple-700">Tổng tiền đơn hàng:</span>
-                                            <span className="text-lg font-bold text-purple-600">
-                                                {orderTotal.toLocaleString('vi-VN')}đ
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* Tổng tiền */}
-                            <div className="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-lg p-4 text-white">
-                                <div className="space-y-2">
-                                    <div className="flex justify-between items-center">
-                                        <span className="text-lg font-semibold">Tổng tiền:</span>
-                                        <span className="text-3xl font-bold">
-                                            {(paymentDetails.total + orderTotal).toLocaleString('vi-VN')}đ
-                                        </span>
-                                    </div>
-                                    {orderTotal > 0 && (
-                                        <div className="text-sm text-indigo-100">
-                                            ({paymentDetails.total.toLocaleString('vi-VN')}đ chơi bàn + {orderTotal.toLocaleString('vi-VN')}đ đơn hàng)
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-
-                            {/* Phương thức thanh toán */}
-                            <div className="border border-gray-200 rounded-lg p-4">
-                                <p className="text-sm font-semibold text-gray-700 mb-3">Phương thức thanh toán</p>
-                                <div className="flex gap-4">
-                                    <label className="flex items-center gap-2 cursor-pointer">
-                                        <input
-                                            type="radio"
-                                            name="paymentMethod"
-                                            value="cash"
-                                            checked={paymentMethod === 'cash'}
-                                            onChange={(e) => setPaymentMethod(e.target.value as 'cash' | 'bank')}
-                                            className="w-4 h-4 text-indigo-600"
-                                        />
-                                        <span className="text-sm text-gray-700">💵 Tiền mặt</span>
-                                    </label>
-                                    <label className="flex items-center gap-2 cursor-pointer">
-                                        <input
-                                            type="radio"
-                                            name="paymentMethod"
-                                            value="bank"
-                                            checked={paymentMethod === 'bank'}
-                                            onChange={(e) => setPaymentMethod(e.target.value as 'cash' | 'bank')}
-                                            className="w-4 h-4 text-indigo-600"
-                                        />
-                                        <span className="text-sm text-gray-700">🏦 Chuyển khoản</span>
-                                    </label>
-                                </div>
-                            </div>
-
-
-                            {/* Nút hành động */}
-                            <div className="flex gap-3 pt-2">
+                            <div className="flex items-center justify-between mb-4">
+                                <h3 className="text-2xl font-bold text-gray-800">Tính tiền bàn</h3>
                                 <button
                                     onClick={handleCancelPayment}
-                                    className="flex-1 bg-gray-200 text-gray-700 py-3 rounded-lg hover:bg-gray-300 transition font-medium"
+                                    className="text-gray-400 hover:text-gray-600 text-2xl"
                                 >
-                                    Hủy
-                                </button>
-                                <button
-                                    onClick={handleConfirmPayment}
-                                    className="flex-1 bg-green-600 text-white py-3 rounded-lg hover:bg-green-700 transition font-medium text-lg"
-                                >
-                                    Xác nhận thanh toán
+                                    ×
                                 </button>
                             </div>
-                        </div>
+
+                            <div className="space-y-4">
+                                {/* Thông tin bàn */}
+                                <div className="bg-indigo-50 rounded-lg p-4 border border-indigo-200">
+                                    <div className="flex justify-between items-center">
+                                        <span className="text-gray-600">Bàn:</span>
+                                        <span className="text-xl font-bold text-indigo-700">{paymentTable.name}</span>
+                                    </div>
+                                </div>
+
+                                {/* Thời gian */}
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
+                                        <p className="text-sm text-gray-600 mb-1">Bắt đầu</p>
+                                        <p className="text-lg font-semibold text-gray-800">{paymentTable.startTime}</p>
+                                    </div>
+                                    <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
+                                        <p className="text-sm text-gray-600 mb-1">Kết thúc</p>
+                                        <p className="text-lg font-semibold text-gray-800">
+                                            {new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}
+                                        </p>
+                                    </div>
+                                </div>
+
+                                {/* Chi tiết tính tiền bàn */}
+                                {paymentDetails.details.length > 0 && (
+                                    <div className="border border-gray-200 rounded-lg overflow-hidden">
+                                        <div className="bg-gray-100 px-4 py-2 border-b border-gray-200">
+                                            <p className="font-semibold text-gray-700">Chi tiết tính tiền chơi bàn</p>
+                                        </div>
+                                        <div className="divide-y divide-gray-200">
+                                            {paymentDetails.details.map((detail, index) => (
+                                                <div key={index} className="px-4 py-3">
+                                                    <div className="flex justify-between items-start mb-1">
+                                                        <span className="text-sm text-gray-600">{detail.period}</span>
+                                                        <span className="text-sm font-semibold text-gray-800">
+                                                            {formatDuration(detail.hours)} × {detail.price.toLocaleString('vi-VN')}đ/giờ
+                                                        </span>
+                                                    </div>
+                                                    <div className="text-right">
+                                                        <span className="text-sm font-bold text-indigo-600">
+                                                            {detail.amount.toLocaleString('vi-VN')}đ
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                        <div className="px-4 py-3 bg-gray-50 border-t border-gray-200">
+                                            <div className="flex justify-between items-center">
+                                                <span className="text-sm font-semibold text-gray-700">Tổng tiền chơi bàn:</span>
+                                                <span className="text-lg font-bold text-indigo-600">
+                                                    {paymentDetails.total.toLocaleString('vi-VN')}đ
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Chi tiết đơn hàng */}
+                                {orderDetails.length > 0 && (
+                                    <div className="border border-purple-200 rounded-lg overflow-hidden">
+                                        <div className="bg-purple-100 px-4 py-2 border-b border-purple-200">
+                                            <p className="font-semibold text-purple-700">Chi tiết đơn hàng ({orderDetails.length} đơn)</p>
+                                        </div>
+                                        <div className="divide-y divide-purple-100">
+                                            {orderDetails.map((order) => (
+                                                <div key={order.id} className="px-4 py-3">
+                                                    <div className="flex justify-between items-start mb-2">
+                                                        <span className="text-sm font-semibold text-gray-700">Đơn #{order.id}</span>
+                                                        <span className="text-sm font-bold text-purple-600">
+                                                            {order.totalAmount.toLocaleString('vi-VN')}đ
+                                                        </span>
+                                                    </div>
+                                                    {/* Chi tiết các món trong đơn */}
+                                                    <div className="bg-purple-50 rounded-lg p-2 mt-2 space-y-1">
+                                                        {order.items.map((item) => (
+                                                            <div key={item.id} className="flex justify-between text-xs">
+                                                                <span className="text-gray-700">
+                                                                    {item.menuItemName} × {item.quantity}
+                                                                </span>
+                                                                <span className="font-semibold text-gray-800">
+                                                                    {(item.price * item.quantity).toLocaleString('vi-VN')}đ
+                                                                </span>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                        <div className="px-4 py-3 bg-purple-50 border-t border-purple-200">
+                                            <div className="flex justify-between items-center">
+                                                <span className="text-sm font-semibold text-purple-700">Tổng tiền đơn hàng:</span>
+                                                <span className="text-lg font-bold text-purple-600">
+                                                    {orderTotal.toLocaleString('vi-VN')}đ
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Tổng tiền */}
+                                <div className="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-lg p-4 text-white">
+                                    <div className="space-y-2">
+                                        <div className="flex justify-between items-center">
+                                            <span className="text-lg font-semibold">Tổng tiền:</span>
+                                            <span className="text-3xl font-bold">
+                                                {(paymentDetails.total + orderTotal).toLocaleString('vi-VN')}đ
+                                            </span>
+                                        </div>
+                                        {orderTotal > 0 && (
+                                            <div className="text-sm text-indigo-100">
+                                                ({paymentDetails.total.toLocaleString('vi-VN')}đ chơi bàn + {orderTotal.toLocaleString('vi-VN')}đ đơn hàng)
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+
+                                {/* Phương thức thanh toán */}
+                                <div className="border border-gray-200 rounded-lg p-4">
+                                    <p className="text-sm font-semibold text-gray-700 mb-3">Phương thức thanh toán</p>
+                                    <div className="flex gap-4">
+                                        <label className="flex items-center gap-2 cursor-pointer">
+                                            <input
+                                                type="radio"
+                                                name="paymentMethod"
+                                                value="cash"
+                                                checked={paymentMethod === 'cash'}
+                                                onChange={(e) => setPaymentMethod(e.target.value as 'cash' | 'bank')}
+                                                className="w-4 h-4 text-indigo-600"
+                                            />
+                                            <span className="text-sm text-gray-700">💵 Tiền mặt</span>
+                                        </label>
+                                        <label className="flex items-center gap-2 cursor-pointer">
+                                            <input
+                                                type="radio"
+                                                name="paymentMethod"
+                                                value="bank"
+                                                checked={paymentMethod === 'bank'}
+                                                onChange={(e) => setPaymentMethod(e.target.value as 'cash' | 'bank')}
+                                                className="w-4 h-4 text-indigo-600"
+                                            />
+                                            <span className="text-sm text-gray-700">🏦 Chuyển khoản</span>
+                                        </label>
+                                    </div>
+                                </div>
+
+
+                                {/* Nút hành động */}
+                                <div className="flex gap-3 pt-2">
+                                    <button
+                                        onClick={handleCancelPayment}
+                                        className="flex-1 bg-gray-200 text-gray-700 py-3 rounded-lg hover:bg-gray-300 transition font-medium"
+                                    >
+                                        Hủy
+                                    </button>
+                                    <button
+                                        onClick={handleConfirmPayment}
+                                        className="flex-1 bg-green-600 text-white py-3 rounded-lg hover:bg-green-700 transition font-medium text-lg"
+                                    >
+                                        Xác nhận thanh toán
+                                    </button>
+                                </div>
+                            </div>
                         </div>
 
                         {/* QR Code thanh toán - bên cạnh modal khi chọn chuyển khoản */}
                         {paymentMethod === 'bank' && bankSettings && bankSettings.bankAccount.accountNumber && bankCode && (() => {
                             const totalAmount = paymentDetails.total + orderTotal;
                             const description = `Thanh toan ban ${paymentTable.name}`;
-                            const qrCodeUrl = `https://img.vietqr.io/image/${bankCode}-${bankSettings.bankAccount.accountNumber}-compact2.png?amount=${totalAmount}&addInfo=${encodeURIComponent(description)}&accountName=${encodeURIComponent(bankSettings.bankAccount.accountHolder)}`;
-                            
+                            const qrCodeUrl = `https://img.vietqr.io/image/${bankCode}-${bankSettings.bankAccount.accountNumber}-s6xYIGG.png?amount=${totalAmount}&addInfo=${encodeURIComponent(description)}&accountName=${encodeURIComponent(bankSettings.bankAccount.accountHolder)}`;
+
                             return (
                                 <div className="bg-white rounded-lg shadow-xl p-6 w-full lg:w-auto lg:flex-shrink-0">
                                     <h3 className="text-xl font-bold text-gray-800 mb-4 text-center">QR Code thanh toán</h3>
                                     <div className="flex flex-col items-center gap-4">
-                                        <img 
+                                        <img
                                             src={qrCodeUrl}
                                             alt="QR Code thanh toán"
                                             className="w-64 h-64 border-2 border-gray-300 rounded-lg bg-white p-3"

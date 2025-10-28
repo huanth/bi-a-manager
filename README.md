@@ -206,7 +206,7 @@ Backend API endpoint được cấu hình trong `vite.config.ts`:
   - Bàn có khung giờ: tính theo khung giờ đã cài đặt
   - Thời gian không nằm trong khung giờ: tính theo giá mặc định
 - QR Code thanh toán:
-  - Format: `https://img.vietqr.io/image/{BANK_CODE}-{ACCOUNT_NO}-compact2.png`
+  - Format: `https://img.vietqr.io/image/{BANK_CODE}-{ACCOUNT_NO}-compact.png`
   - Tự động thêm số tiền, nội dung và tên chủ tài khoản vào QR Code
 
 ## 🤝 Đóng góp

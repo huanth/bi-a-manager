@@ -1,13 +1,10 @@
 import { useState, useEffect } from 'react';
 import { Order, OrderStatus } from '../types/order';
-import { RevenueTransaction } from '../types/revenue';
 import { getData, saveData, DB_KEYS } from '../services/database';
-import { useAuth } from '../contexts/AuthContext';
 import Modal from './Modal';
 import { useModal } from '../hooks/useModal';
 
 const OrderManagement = () => {
-    const { user } = useAuth();
     const [orders, setOrders] = useState<Order[]>([]);
     const [filterStatus, setFilterStatus] = useState<OrderStatus | 'all'>('all');
     const [loading, setLoading] = useState(true);
@@ -79,38 +76,9 @@ const OrderManagement = () => {
                 modal.showSuccess('Đã đánh dấu đơn hàng hoàn thành!');
             }
 
-            // Nếu đơn hàng được đánh dấu là completed, lưu vào revenue
-            if (newStatus === 'completed' && order.status !== 'completed') {
-                try {
-                    const revenueTransactions = await getData<RevenueTransaction[]>(DB_KEYS.REVENUE, []);
-
-                    // Kiểm tra xem đã có transaction cho đơn hàng này chưa
-                    const existingTransaction = revenueTransactions.find(
-                        t => t.type === 'order' && t.orderId === orderId
-                    );
-
-                    if (!existingTransaction) {
-                        const newTransaction: RevenueTransaction = {
-                            id: Date.now(),
-                            type: 'order',
-                            orderId: order.id,
-                            tableId: order.tableId,
-                            tableName: order.tableName,
-                            amount: order.totalAmount,
-                            createdAt: new Date().toISOString(),
-                            createdBy: user?.username || 'unknown',
-                            note: `Đơn hàng #${order.id} - ${order.tableName}`,
-                        };
-
-                        await saveData(DB_KEYS.REVENUE, [...revenueTransactions, newTransaction]);
-
-                        // Thông báo Dashboard cập nhật doanh thu
-                        window.dispatchEvent(new CustomEvent('revenueUpdated'));
-                    }
-                } catch (error) {
-                    // Error saving revenue transaction
-                }
-            }
+            // KHÔNG tự động tạo revenue transaction khi mark completed
+            // Doanh thu chỉ được tính khi thanh toán bàn (trong BilliardTables component)
+            // Đơn hàng sẽ được tính vào revenue khi thanh toán bàn, tránh tính trùng
         } catch (error) {
             modal.showError('Có lỗi xảy ra khi cập nhật trạng thái đơn hàng');
         }
