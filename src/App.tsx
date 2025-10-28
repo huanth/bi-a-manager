@@ -1,4 +1,3 @@
-import { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { ToastProvider } from './contexts/ToastContext';
@@ -6,12 +5,12 @@ import Dashboard from './components/Dashboard';
 import Login from './components/Login';
 import ToastContainer from './components/ToastContainer';
 import { useToast } from './hooks/useToast';
-import { Order } from './types/order';
+ 
 
 const AppContent = () => {
     const { isAuthenticated } = useAuth();
     const toast = useToast();
-    const [newOrder, setNewOrder] = useState<Order | null>(null);
+    
 
     // Customer Order feature removed: no cross-tab new order popup/listeners here
 

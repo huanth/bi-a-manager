@@ -243,7 +243,7 @@ const BilliardTables = ({ serviceMode = false }: BilliardTablesProps) => {
             }
 
             // Lọc các đơn hàng trong phiên chơi: cùng bàn, trong khoảng thời gian phiên chơi
-            // Bao gồm CẢ order của nhân viên VÀ order của khách (khách order qua QR)
+            // Bao gồm order do nhân viên tạo trong quá trình phục vụ bàn
             const tableOrders = orders.filter(order => {
                 // Chỉ lấy order của bàn hiện tại
                 if (order.tableId !== tableId) {
