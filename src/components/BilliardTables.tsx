@@ -242,13 +242,20 @@ const BilliardTables = ({ serviceMode = false }: BilliardTablesProps) => {
                 startDate.setDate(startDate.getDate() - 1);
             }
 
-            // Lọc các đơn hàng trong phiên chơi: cùng bàn, và được tạo trong khoảng thời gian phiên chơi
+            // Lọc các đơn hàng trong phiên chơi: cùng bàn, trong khoảng thời gian phiên chơi
+            // Bao gồm CẢ order của nhân viên VÀ order của khách (khách order qua QR)
             const tableOrders = orders.filter(order => {
+                // Chỉ lấy order của bàn hiện tại
                 if (order.tableId !== tableId) {
                     return false;
                 }
 
-                // Kiểm tra thời gian tạo đơn hàng
+                // Chỉ lấy order pending (order đã completed sẽ không tính lại)
+                if (order.status !== 'pending') {
+                    return false;
+                }
+
+                // Kiểm tra thời gian tạo đơn hàng trong phiên chơi
                 const orderCreatedAt = new Date(order.createdAt);
                 return orderCreatedAt >= startDate && orderCreatedAt <= now;
             });

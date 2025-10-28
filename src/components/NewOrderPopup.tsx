@@ -17,14 +17,14 @@ const NewOrderPopup = ({ order, onClose }: NewOrderPopupProps) => {
         const timer = setTimeout(() => {
             setIsVisible(false);
             setTimeout(onClose, 300); // Wait for fade out animation
-        }, 10000);
+        }, 3000);
 
         return () => clearTimeout(timer);
     }, [onClose]);
 
     const handleClose = () => {
         setIsVisible(false);
-        setTimeout(onClose, 300);
+        // setTimeout(onClose, 300);
     };
 
     return (

@@ -134,12 +134,16 @@ const CustomerOrder = () => {
             await saveData(DB_KEYS.ORDERS, [...orders, newOrder]);
 
             // Thông báo cho trang quản lý
+            console.log('Dispatching newOrder event:', newOrder);
             window.dispatchEvent(new CustomEvent('newOrder', {
                 detail: {
                     order: newOrder,
                     message: `Có đơn hàng mới từ bàn ${table.name}!`
                 }
             }));
+
+            // Dispatch cho localStorage để cross-tab communication
+            localStorage.setItem('newOrderData', JSON.stringify(newOrder));
 
             setShowSuccess(true);
             setSelectedItems(new Map());

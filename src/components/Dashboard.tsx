@@ -8,6 +8,7 @@ import MenuManagement from './MenuManagement';
 import RevenueStats from './RevenueStats';
 import Settings from './Settings';
 import Modal from './Modal';
+import NewOrderPopup from './NewOrderPopup';
 import { getData, DB_KEYS } from '../services/database';
 import { Order } from '../types/order';
 
@@ -17,6 +18,7 @@ const Dashboard = () => {
     const [pendingOrdersCount, setPendingOrdersCount] = useState(0);
     const [showTermsModal, setShowTermsModal] = useState(false);
     const [showAboutModal, setShowAboutModal] = useState(false);
+    const [newOrder, setNewOrder] = useState<Order | null>(null);
 
     // Đếm đơn hàng chưa hoàn thành
     const loadData = async () => {
@@ -42,11 +44,62 @@ const Dashboard = () => {
             loadData();
         };
 
+        // Lắng nghe event khi có order mới từ khách
+        const handleNewOrder = (event: Event) => {
+            const customEvent = event as CustomEvent;
+            const { order: newOrderData } = customEvent.detail;
+
+            console.log('Received newOrder event:', newOrderData);
+
+            if (newOrderData) {
+                setNewOrder(newOrderData);
+            }
+
+            // Refresh pending orders count
+            loadData();
+        };
+
+        // Lắng nghe localStorage change để detect order từ tab khác
+        const handleStorageChange = (e: StorageEvent) => {
+            if (e.key === 'newOrderData' && e.newValue) {
+                try {
+                    const newOrderData = JSON.parse(e.newValue);
+                    console.log('Received newOrder from localStorage:', newOrderData);
+                    setNewOrder(newOrderData);
+                    loadData();
+                    localStorage.removeItem('newOrderData'); // Clear sau khi đọc
+                } catch (error) {
+                    console.error('Error parsing newOrderData:', error);
+                }
+            }
+        };
+
+        // Polling cho localStorage mỗi giây
+        const storagePollInterval = setInterval(() => {
+            const newOrderDataStr = localStorage.getItem('newOrderData');
+            if (newOrderDataStr) {
+                try {
+                    const newOrderData = JSON.parse(newOrderDataStr);
+                    console.log('Polling: Found newOrder in localStorage:', newOrderData);
+                    setNewOrder(newOrderData);
+                    loadData();
+                    localStorage.removeItem('newOrderData');
+                } catch (error) {
+                    console.error('Error parsing newOrderData from storage:', error);
+                }
+            }
+        }, 1000);
+
         window.addEventListener('ordersUpdated', handleDataChange);
+        window.addEventListener('newOrder', handleNewOrder);
+        window.addEventListener('storage', handleStorageChange);
 
         return () => {
             clearInterval(interval);
+            clearInterval(storagePollInterval);
             window.removeEventListener('ordersUpdated', handleDataChange);
+            window.removeEventListener('newOrder', handleNewOrder);
+            window.removeEventListener('storage', handleStorageChange);
         };
     }, []);
 
@@ -340,6 +393,20 @@ const Dashboard = () => {
                     </div>
                 </div>
             </Modal>
+
+            {/* New Order Popup - hiển thị khi khách order */}
+            {(() => {
+                console.log('Dashboard render - newOrder:', newOrder);
+                return newOrder && (
+                    <NewOrderPopup
+                        order={newOrder}
+                        onClose={() => {
+                            console.log('Closing popup');
+                            setNewOrder(null);
+                        }}
+                    />
+                );
+            })()}
         </div>
     );
 };
